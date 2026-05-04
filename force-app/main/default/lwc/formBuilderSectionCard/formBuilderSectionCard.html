@@ -1,0 +1,99 @@
+<template>
+    <div class={section.cssClass}>
+        <div
+            class={sectionHeaderClass}
+            data-elementtype="section"
+            data-id={section.Id}
+            onclick={handleElementClick}
+            draggable="true"
+            data-itemtype="section"
+            data-parentid={pageId}
+            ondragstart={handleDragStart}
+            ondragend={handleDragEnd}
+        >
+            <span class="drag-handle-area">
+                <span class="drag-handle">&#8942;&#8942;</span>
+                <lightning-button-icon
+                    icon-name={section.collapseIcon}
+                    alternative-text="Toggle"
+                    size="x-small"
+                    data-id={section.Id}
+                    onclick={handleToggleCollapse}
+                    class="collapse-toggle-section"
+                ></lightning-button-icon>
+                <lightning-icon icon-name="utility:layout" size="xx-small" class="slds-m-right_x-small"></lightning-icon>
+                {section.Name}
+                <template if:true={section.isDependent}>
+                    <span class="type-badge dep-badge">Conditional</span>
+                </template>
+            </span>
+            <template if:false={suppressRepositoryChrome}>
+                <lightning-button-icon
+                    icon-name="utility:add"
+                    alternative-text="Add Question"
+                    size="small"
+                    data-sectionid={section.Id}
+                    onclick={handleQuickAddQuestion}
+                ></lightning-button-icon>
+            </template>
+        </div>
+
+        <template if:false={section.isCollapsed}>
+            <div>
+                <c-form-builder-drop-zone
+                    dropzone="section"
+                    accepts="question,questionRepository"
+                    parent-id={section.Id}
+                    position="0"
+                    is-dragging={isDragging}
+                    drag-item-type={dragItemType}
+                    drag-type={dragType}
+                    variant="line"
+                ></c-form-builder-drop-zone>
+
+                <template if:true={section.hasQuestions}>
+                    <template for:each={section.questions} for:item="question">
+                        <c-form-builder-question-card
+                            key={question.Id}
+                            question={question}
+                            section-id={section.Id}
+                            is-dragging={isDragging}
+                            drag-item-type={dragItemType}
+                            drag-type={dragType}
+                            dragging-source-id={draggingSourceId}
+                            show-scoring={showScoring}
+                            suppress-repository-chrome={suppressRepositoryChrome}
+                        ></c-form-builder-question-card>
+                    </template>
+                </template>
+
+                <template if:false={section.hasQuestions}>
+                    <c-form-builder-drop-zone
+                        dropzone="section"
+                        accepts="question,questionRepository"
+                        parent-id={section.Id}
+                        position="0"
+                        is-dragging={isDragging}
+                        drag-item-type={dragItemType}
+                        drag-type={dragType}
+                        variant="empty"
+                    >
+                        <span class="slds-text-body_small slds-text-color_weak">Drag a question here</span>
+                    </c-form-builder-drop-zone>
+                </template>
+            </div>
+        </template>
+        <template if:false={suppressRepositoryChrome}>
+            <c-form-builder-drop-zone
+                dropzone="page"
+                accepts="section,sectionRepository"
+                parent-id={pageId}
+                position={section.dropPosition}
+                is-dragging={isDragging}
+                drag-item-type={dragItemType}
+                drag-type={dragType}
+                variant="line"
+            ></c-form-builder-drop-zone>
+        </template>
+    </div>
+</template>

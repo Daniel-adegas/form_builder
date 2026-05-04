@@ -1,0 +1,53 @@
+<template>
+    <div class="slds-form-element">
+        <label class="slds-form-element__label">{label}</label>
+        <div class="slds-form-element__control">
+            <table class="slds-table slds-table_cell-buffer slds-table_bordered">
+                <thead>
+                    <tr class="slds-line-height_reset">
+                        <template for:each={columns} for:item="col">
+                            <th key={col.fieldName} scope="col">
+                                <div class="slds-truncate" title={col.label}>{col.label}</div>
+                            </th>
+                        </template>
+                        <th scope="col"></th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <template for:each={tableData} for:item="row">
+                        <tr key={row.rowId}>
+                            <template for:each={row.cells} for:item="cell">
+                                <td key={cell.key}>
+                                    <lightning-input
+                                        type="text"
+                                        value={cell.value}
+                                        data-row-id={row.rowId}
+                                        data-field={cell.fieldName}
+                                        onchange={handleCellChange}
+                                        variant="label-hidden"
+                                        disabled={disabled}>
+                                    </lightning-input>
+                                </td>
+                            </template>
+                            <td>
+                                <lightning-button-icon 
+                                    icon-name="utility:delete" 
+                                    variant="bare"
+                                    data-row-id={row.rowId}
+                                    disabled={disabled}
+                                    onclick={removeRow}>
+                                </lightning-button-icon>
+                            </td>
+                        </tr>
+                    </template>
+                </tbody>
+            </table>
+            <lightning-button 
+                label="Add Row" 
+                onclick={addRow}
+                disabled={disabled}
+                class="slds-m-top_small">
+            </lightning-button>
+        </div>
+    </div>
+</template>

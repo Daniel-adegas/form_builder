@@ -1,0 +1,94 @@
+<template>
+    <div class="fm-inline-container">
+        <div class="fm-header slds-grid slds-grid_vertical-align-center slds-grid_align-spread">
+            <h4 class="slds-text-title_caps">
+                <lightning-icon icon-name="utility:database" size="xx-small" class="slds-m-right_xx-small"></lightning-icon>
+                Field Mapping
+            </h4>
+            <lightning-button-icon
+                icon-name={addButtonIcon}
+                alternative-text="Toggle add form"
+                variant="bare"
+                size="small"
+                onclick={handleToggleAdd}>
+            </lightning-button-icon>
+        </div>
+
+        <!-- Existing mappings -->
+        <template if:true={hasMappings}>
+            <template for:each={enrichedMappings} for:item="mapping">
+                <div key={mapping.id} class="fm-pill slds-grid slds-grid_vertical-align-center" data-id={mapping.id} onclick={handleEditMapping}>
+                    <span class="fm-pill-direction" title={mapping.directionLabel}>{mapping.directionArrow}</span>
+                    <span class="fm-pill-field slds-truncate" title={mapping.displayField}>{mapping.displayField}</span>
+                    <span class="fm-pill-type">{mapping.mappingType}</span>
+                    <lightning-button-icon
+                        icon-name="utility:close"
+                        alternative-text="Remove"
+                        variant="bare"
+                        size="xx-small"
+                        data-id={mapping.id}
+                        onclick={handleDelete}
+                        class="fm-remove">
+                    </lightning-button-icon>
+                </div>
+            </template>
+        </template>
+
+        <!-- Empty state -->
+        <template if:false={hasMappings}>
+            <template if:false={showAddForm}>
+                <p class="slds-text-body_small slds-text-color_weak slds-m-top_xx-small">No field mappings yet. Click + to add one.</p>
+            </template>
+        </template>
+
+        <!-- Add/Edit form -->
+        <template if:true={showAddForm}>
+            <div class="fm-add-form slds-m-top_small">
+                <lightning-combobox
+                    label="Form Target"
+                    value={newMapping.C_Form_Target__c}
+                    options={formTargetOptions}
+                    data-field="C_Form_Target__c"
+                    onchange={handleTargetChange}
+                    placeholder="Select target..."
+                    class="slds-m-bottom_xx-small">
+                </lightning-combobox>
+                <lightning-combobox
+                    label="Target Field"
+                    value={newMapping.C_Target_Field__c}
+                    options={targetFieldOptions}
+                    data-field="C_Target_Field__c"
+                    onchange={handleFieldChange}
+                    placeholder="Select field..."
+                    disabled={isTargetFieldDisabled}
+                    class="slds-m-bottom_xx-small">
+                </lightning-combobox>
+                <lightning-combobox
+                    label="Mapping Type"
+                    value={newMapping.C_Mapping_Type__c}
+                    options={mappingTypeOptions}
+                    data-field="C_Mapping_Type__c"
+                    onchange={handleFieldChange}
+                    class="slds-m-bottom_xx-small">
+                </lightning-combobox>
+                <template if:true={isStaticValueType}>
+                    <lightning-input
+                        label="Static Value"
+                        value={newMapping.C_Static_Value__c}
+                        data-field="C_Static_Value__c"
+                        onchange={handleFieldChange}
+                        class="slds-m-bottom_xx-small">
+                    </lightning-input>
+                </template>
+                <div class="slds-grid slds-gutters_xx-small slds-m-top_x-small">
+                    <div class="slds-col">
+                        <lightning-button label={saveButtonLabel} variant="brand" size="small" onclick={handleSave}></lightning-button>
+                    </div>
+                    <div class="slds-col">
+                        <lightning-button label="Cancel" variant="neutral" size="small" onclick={handleCancel}></lightning-button>
+                    </div>
+                </div>
+            </div>
+        </template>
+    </div>
+</template>

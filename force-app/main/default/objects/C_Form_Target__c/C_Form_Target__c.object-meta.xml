@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<CustomObject xmlns="http://soap.sforce.com/2006/04/metadata">
+    <actionOverrides>
+        <actionName>View</actionName>
+        <comment>Action override created by Lightning App Builder during activation.</comment>
+        <content>Form_Target_Record_Page</content>
+        <formFactor>Large</formFactor>
+        <skipRecordTypeSelect>false</skipRecordTypeSelect>
+        <type>Flexipage</type>
+    </actionOverrides>
+    <deploymentStatus>Deployed</deploymentStatus>
+    <description>Target record configuration for a form - defines which Salesforce object to create/update when a form is submitted, including record resolution strategy</description>
+    <label>Form Target</label>
+    <nameField>
+        <displayFormat>FT-{0000}</displayFormat>
+        <label>Form Target Name</label>
+        <type>AutoNumber</type>
+    </nameField>
+    <pluralLabel>Form Targets</pluralLabel>
+    <sharingModel>ControlledByParent</sharingModel>
+</CustomObject>

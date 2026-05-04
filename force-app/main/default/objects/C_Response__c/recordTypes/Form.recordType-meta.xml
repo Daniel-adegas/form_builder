@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<RecordType xmlns="http://soap.sforce.com/2006/04/metadata">
+    <fullName>Form</fullName>
+    <active>true</active>
+    <description>Response option placed within a form question</description>
+    <label>Form</label>
+</RecordType>

@@ -1,0 +1,119 @@
+<template>
+    <div class="cf-rule-container">
+        <template if:false={supportsCrossFieldRules}>
+            <p class="slds-text-body_small slds-text-color_weak slds-m-bottom_small">
+                Cross-field rules compare this answer to another question (for example, end date after start date).
+                Set the question type to <strong>Date</strong> or <strong>Number</strong> in <strong>Basic</strong>, then add rules here.
+            </p>
+            <template if:true={hasRules}>
+                <p class="slds-text-body_small slds-text-color_error slds-m-bottom_x-small">
+                    This question still has stored rules. Switch the type back to Date or Number to edit them, or remove below.
+                </p>
+                <template for:each={enrichedRules} for:item="rule">
+                    <div key={rule.id} class="cf-rule-pill cf-rule-pill-readonly slds-grid slds-grid_vertical-center">
+                        <span class={rule.badgeClass}>{rule.typeLabel}</span>
+                        <div class="cf-rule-info slds-col">
+                            <span class="cf-rule-ref slds-truncate" title={rule.refQuestionLabel}>{rule.refQuestionLabel}</span>
+                            <span class="cf-rule-msg slds-truncate" title={rule.message}>{rule.messageShort}</span>
+                        </div>
+                        <lightning-button-icon
+                            icon-name="utility:close"
+                            alternative-text="Remove rule"
+                            variant="bare"
+                            size="xx-small"
+                            data-id={rule.id}
+                            onclick={handleDelete}
+                            class="cf-rule-remove">
+                        </lightning-button-icon>
+                    </div>
+                </template>
+            </template>
+        </template>
+
+        <template if:true={supportsCrossFieldRules}>
+        <div class="cf-rule-header slds-grid slds-grid_vertical-center slds-grid_align-spread">
+            <h4 class="cf-rule-title">
+                <lightning-icon icon-name="utility:shield" size="xx-small" class="slds-m-right_xx-small"></lightning-icon>
+                Rules
+            </h4>
+            <lightning-button-icon
+                icon-name={addButtonIcon}
+                alternative-text="Toggle add rule form"
+                variant="bare"
+                size="small"
+                onclick={handleToggleAdd}>
+            </lightning-button-icon>
+        </div>
+
+        <!-- Existing rules -->
+        <template if:true={hasRules}>
+            <template for:each={enrichedRules} for:item="rule">
+                <div key={rule.id} class="cf-rule-pill slds-grid slds-grid_vertical-center" data-id={rule.id} onclick={handleEditRule}>
+                    <span class={rule.badgeClass}>{rule.typeLabel}</span>
+                    <div class="cf-rule-info slds-col">
+                        <span class="cf-rule-ref slds-truncate" title={rule.refQuestionLabel}>{rule.refQuestionLabel}</span>
+                        <span class="cf-rule-msg slds-truncate" title={rule.message}>{rule.messageShort}</span>
+                    </div>
+                    <lightning-button-icon
+                        icon-name="utility:close"
+                        alternative-text="Remove rule"
+                        variant="bare"
+                        size="xx-small"
+                        data-id={rule.id}
+                        onclick={handleDelete}
+                        class="cf-rule-remove">
+                    </lightning-button-icon>
+                </div>
+            </template>
+        </template>
+
+        <!-- Empty state -->
+        <template if:false={hasRules}>
+            <template if:false={showAddForm}>
+                <p class="slds-text-body_small slds-text-color_weak slds-m-top_xx-small">
+                    No validation rules yet. Click + to add one.
+                </p>
+            </template>
+        </template>
+
+        <!-- Add / edit form -->
+        <template if:true={showAddForm}>
+            <div class="cf-rule-form slds-m-top_small">
+                <lightning-combobox
+                    label="Rule Type"
+                    value={newRule.type}
+                    options={ruleTypeOptions}
+                    data-field="type"
+                    onchange={handleFieldChange}
+                    placeholder="Select...">
+                </lightning-combobox>
+                <lightning-combobox
+                    label="Compare to Question"
+                    value={newRule.refQuestionId}
+                    options={compatibleQuestions}
+                    data-field="refQuestionId"
+                    onchange={handleFieldChange}
+                    placeholder="Select question..."
+                    disabled={isRefQuestionDisabled}>
+                </lightning-combobox>
+                <lightning-input
+                    label="Error Message"
+                    value={newRule.message}
+                    data-field="message"
+                    onchange={handleFieldChange}
+                    placeholder="e.g. End date must be on or after the start date."
+                    class="slds-m-bottom_small">
+                </lightning-input>
+                <div class="slds-grid slds-gutters_xx-small">
+                    <div class="slds-col">
+                        <lightning-button label={saveButtonLabel} variant="brand" size="small" onclick={handleSave}></lightning-button>
+                    </div>
+                    <div class="slds-col">
+                        <lightning-button label="Cancel" variant="neutral" size="small" onclick={handleCancel}></lightning-button>
+                    </div>
+                </div>
+            </div>
+        </template>
+        </template>
+    </div>
+</template>

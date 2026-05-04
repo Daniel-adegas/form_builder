@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<CustomField xmlns="http://soap.sforce.com/2006/04/metadata">
+    <fullName>C_Resolution_Type__c</fullName>
+    <externalId>false</externalId>
+    <label>Resolution Type</label>
+    <required>true</required>
+    <trackHistory>false</trackHistory>
+    <trackTrending>false</trackTrending>
+    <type>Picklist</type>
+    <valueSet>
+        <restricted>true</restricted>
+        <valueSetDefinition>
+            <sorted>false</sorted>
+            <value><fullName>Record_Context</fullName><default>true</default><label>Record Context</label></value>
+            <value><fullName>Running_User</fullName><default>false</default><label>Running User</label></value>
+            <value><fullName>Related_Record</fullName><default>false</default><label>Related Record</label></value>
+            <value><fullName>New</fullName><default>false</default><label>Create New Record</label></value>
+            <value><fullName>Running_User_Account</fullName><default>false</default><label>Running User Account (Legacy)</label></value>
+            <value><fullName>Running_User_Contact</fullName><default>false</default><label>Running User Contact (Legacy)</label></value>
+        </valueSetDefinition>
+    </valueSet>
+</CustomField>

@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<CustomField xmlns="http://soap.sforce.com/2006/04/metadata">
+    <fullName>C_Action__c</fullName>
+    <externalId>false</externalId>
+    <label>Action</label>
+    <required>true</required>
+    <trackTrending>false</trackTrending>
+    <type>Picklist</type>
+    <valueSet>
+        <restricted>true</restricted>
+        <valueSetDefinition>
+            <sorted>false</sorted>
+            <value>
+                <fullName>Show</fullName>
+                <default>false</default>
+                <label>Show</label>
+            </value>
+            <value>
+                <fullName>Hide</fullName>
+                <default>true</default>
+                <label>Hide</label>
+            </value>
+            <value>
+                <fullName>Require</fullName>
+                <default>false</default>
+                <label>Require</label>
+            </value>
+        </valueSetDefinition>
+    </valueSet>
+</CustomField>

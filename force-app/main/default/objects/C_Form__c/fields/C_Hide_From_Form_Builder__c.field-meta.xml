@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<CustomField xmlns="http://soap.sforce.com/2006/04/metadata">
+    <fullName>C_Hide_From_Form_Builder__c</fullName>
+    <defaultValue>false</defaultValue>
+    <description>When true, this form is hidden from the Form Builder form list (e.g. internal asset library container).</description>
+    <label>Hide From Form Builder</label>
+    <trackTrending>false</trackTrending>
+    <type>Checkbox</type>
+</CustomField>

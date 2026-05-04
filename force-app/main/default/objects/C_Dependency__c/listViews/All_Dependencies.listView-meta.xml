@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ListView xmlns="http://soap.sforce.com/2006/04/metadata">
+    <fullName>All_Dependencies</fullName>
+    <columns>NAME</columns>
+    <columns>C_Controlling_Response__c</columns>
+    <columns>C_Target_Type__c</columns>
+    <columns>C_Action__c</columns>
+    <columns>C_Logic_Group__c</columns>
+    <filterScope>Everything</filterScope>
+    <label>All Dependencies</label>
+</ListView>

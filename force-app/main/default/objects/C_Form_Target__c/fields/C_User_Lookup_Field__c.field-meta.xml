@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<CustomField xmlns="http://soap.sforce.com/2006/04/metadata">
+    <fullName>C_User_Lookup_Field__c</fullName>
+    <externalId>false</externalId>
+    <description>For Running_User resolution: the field path on the User object that resolves to the target record ID. Examples: "Contact.AccountId" (community user Account), "ContactId" (community user Contact), "AccountId" (partner user Account).</description>
+    <inlineHelpText>User object field path to resolve the record. E.g. "Contact.AccountId" for community users, "ContactId" for portal users.</inlineHelpText>
+    <label>User Lookup Field</label>
+    <length>255</length>
+    <required>false</required>
+    <trackHistory>false</trackHistory>
+    <trackTrending>false</trackTrending>
+    <type>Text</type>
+    <unique>false</unique>
+</CustomField>

@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<CustomField xmlns="http://soap.sforce.com/2006/04/metadata">
+    <fullName>C_Mapping_Type__c</fullName>
+    <externalId>false</externalId>
+    <label>Mapping Type</label>
+    <required>false</required>
+    <trackHistory>false</trackHistory>
+    <trackTrending>false</trackTrending>
+    <type>Picklist</type>
+    <valueSet>
+        <restricted>true</restricted>
+        <valueSetDefinition>
+            <sorted>false</sorted>
+            <value><fullName>Field_Value</fullName><default>true</default><label>Field Value</label></value>
+            <value><fullName>Static_Value</fullName><default>false</default><label>Static Value</label></value>
+            <value><fullName>File_Attachment</fullName><default>false</default><label>File Attachment</label></value>
+            <value><fullName>Table_JSON</fullName><default>false</default><label>Table JSON</label></value>
+        </valueSetDefinition>
+    </valueSet>
+</CustomField>

@@ -1,0 +1,785 @@
+<template>
+    <lightning-card title="Form Builder Documentation" icon-name="standard:knowledge">
+        <div class="slds-p-around_medium">
+            
+            <lightning-accordion active-section-name={activeSections} allow-multiple-sections-open>
+                
+                <!-- Overview -->
+                <lightning-accordion-section name="overview" label="Overview">
+                    <div class="slds-p-around_small">
+                        <p class="slds-text-body_regular slds-m-bottom_small">
+                            The Form Builder application allows you to create dynamic, multi-page forms 
+                            entirely through point-and-click configuration. Forms support scoring, 
+                            conditional logic (dependencies), multi-language translations, and 
+                            automatic data write-back to Salesforce records.
+                        </p>
+                        <p class="slds-text-body_regular slds-m-bottom_small">
+                            <strong>Cross-field validation:</strong> You can author rules in the Visual Builder (Date and Number questions)
+                            that compare one answer to another; they are stored on each question and included in the form definition
+                            from Apex. The client-side form renderer must still implement evaluation of those rules, show errors on the
+                            correct inputs, and block submit when invalid — see <em>Features Overview</em>, <em>Known Limitations</em>, and
+                            <em>Architecture Decisions</em> for how the builder side connects to the runtime side.
+                        </p>
+                        <p class="slds-text-body_regular">
+                            Below you will find an explanation of each component in the system 
+                            and a step-by-step guide to creating your first form.
+                        </p>
+                    </div>
+                </lightning-accordion-section>
+
+                <!-- Features -->
+                <lightning-accordion-section name="features" label="Features Overview">
+                    <div class="slds-p-around_small">
+                        <div class="slds-grid slds-wrap slds-gutters">
+                            <template for:each={featuresList} for:item="feat">
+                                <div class="slds-col slds-size_1-of-2 slds-p-bottom_small" key={feat.title}>
+                                    <div class="slds-box slds-theme_shade" style="min-height: 90px;">
+                                        <p class="slds-text-heading_small slds-m-bottom_xx-small">
+                                            <strong>{feat.title}</strong>
+                                        </p>
+                                        <p class="slds-text-body_small">{feat.description}</p>
+                                    </div>
+                                </div>
+                            </template>
+                        </div>
+                    </div>
+                </lightning-accordion-section>
+
+                <!-- Data Model -->
+                <lightning-accordion-section name="datamodel" label="Data Model - Objects Explained">
+                    <div class="slds-p-around_small">
+                        <p class="slds-text-body_regular slds-m-bottom_medium">
+                            The Form Builder uses 14 custom objects. Here is what each one does 
+                            in plain language:
+                        </p>
+                        
+                        <template for:each={dataModelObjects} for:item="obj">
+                            <div class="slds-box slds-m-bottom_small slds-theme_shade" key={obj.name}>
+                                <div class="slds-grid slds-grid_vertical-align-center slds-m-bottom_x-small">
+                                    <lightning-icon icon-name={obj.icon} size="small" 
+                                        class="slds-m-right_small"></lightning-icon>
+                                    <h3 class="slds-text-heading_small slds-text-title_bold">{obj.name}</h3>
+                                </div>
+                                <p class="slds-text-body_regular slds-m-bottom_x-small">{obj.description}</p>
+                                <p class="slds-text-body_small slds-text-color_weak">
+                                    <strong>Key Fields:</strong> {obj.keyFields}
+                                </p>
+                                <p class="slds-text-body_small" style="color: #0070d2; font-style: italic;">
+                                    {obj.example}
+                                </p>
+                            </div>
+                        </template>
+                    </div>
+                </lightning-accordion-section>
+
+                <!-- Visual ERD -->
+                <lightning-accordion-section name="erd" label="Data Model - Visual ERD (3 Diagrams)">
+                    <div class="slds-p-around_small">
+
+                        <!-- ════════════════════════════════════════════════ -->
+                        <!-- ERD 1/3: Core Data Model                       -->
+                        <!-- ════════════════════════════════════════════════ -->
+                        <p class="erd-title" style="color: #032d60;">1/3 — Core Data Model</p>
+                        <div class="erd-container">
+                            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1060 535" class="erd-svg">
+
+                                <!-- Background regions -->
+                                <rect x="0" y="0" width="530" height="535" rx="0" fill="#f7f9fb"/>
+                                <rect x="530" y="0" width="530" height="535" rx="0" fill="#fef8f2"/>
+
+                                <!-- Region labels -->
+                                <text x="265" y="22" font-size="11" font-weight="700" fill="#032d60" text-anchor="middle" letter-spacing="2">FORM DEFINITION</text>
+                                <text x="795" y="22" font-size="11" font-weight="700" fill="#9c5b1c" text-anchor="middle" letter-spacing="2">RUNTIME DATA</text>
+
+                                <!-- Legend -->
+                                <rect x="12" y="8" width="230" height="72" rx="6" fill="white" stroke="#d8dde6" stroke-width="1"/>
+                                <line x1="22" y1="28" x2="62" y2="28" stroke="#333" stroke-width="2.5"/>
+                                <circle cx="62" cy="28" r="4" fill="#333"/>
+                                <text x="70" y="32" font-size="10" fill="#3e3e3c">Master-Detail (parent owns child)</text>
+                                <line x1="22" y1="48" x2="62" y2="48" stroke="#333" stroke-width="1.5" stroke-dasharray="6,4"/>
+                                <circle cx="62" cy="48" r="3.5" fill="white" stroke="#333" stroke-width="1.5"/>
+                                <text x="70" y="52" font-size="10" fill="#3e3e3c">Lookup (reference, no cascade)</text>
+                                <path d="M 22 62 L 42 62 C 52 62, 52 72, 42 72 L 22 72" fill="none" stroke="#0070d2" stroke-width="1.2" stroke-dasharray="4,3"/>
+                                <circle cx="22" cy="72" r="2.5" fill="white" stroke="#0070d2" stroke-width="1.2"/>
+                                <text x="60" y="70" font-size="10" fill="#3e3e3c">Self-referential Lookup (library)</text>
+
+                                <!-- ═══════════ CORE HIERARCHY (center column) ═══════════ -->
+
+                                <!-- Form -->
+                                <rect x="175" y="50" width="180" height="52" rx="8" fill="#0070d2" stroke="#0070d2" stroke-width="2"/>
+                                <rect x="175" y="68" width="180" height="34" rx="0 0 8 8" fill="white" stroke="#0070d2" stroke-width="2"/>
+                                <text x="265" y="64" font-size="12" font-weight="bold" fill="white" text-anchor="middle">C_Form__c</text>
+                                <text x="185" y="84" font-size="9.5" fill="#3e3e3c">Name, Status, Version, Language</text>
+
+                                <!-- Form → Category (MD, branch left) -->
+                                <polyline points="265,102 265,108 90,108 90,112" fill="none" stroke="#333" stroke-width="2.5"/>
+                                <circle cx="90" cy="112" r="4" fill="#333"/>
+                                <rect x="62" y="92" width="45" height="14" rx="3" fill="white"/>
+                                <text x="84" y="103" font-size="9" fill="#333" text-anchor="middle" font-weight="600">MD</text>
+
+                                <!-- Category (wizard grouping; Master-Detail to Form) -->
+                                <rect x="25" y="112" width="130" height="50" rx="8" fill="#0070d2" stroke="#0070d2" stroke-width="2"/>
+                                <rect x="25" y="130" width="130" height="32" rx="0 0 8 8" fill="white" stroke="#0070d2" stroke-width="2"/>
+                                <text x="90" y="126" font-size="11" font-weight="bold" fill="white" text-anchor="middle">C_Category__c</text>
+                                <text x="33" y="144" font-size="8.5" fill="#3e3e3c">Order, Active, Icon</text>
+                                <text x="33" y="156" font-size="8.5" fill="#3e3e3c">Description (MD→Form)</text>
+
+                                <!-- Form → Page (MD, continues center column) -->
+                                <line x1="265" y1="102" x2="265" y2="178" stroke="#333" stroke-width="2.5"/>
+                                <circle cx="265" cy="178" r="4" fill="#333"/>
+                                <rect x="243" y="133" width="45" height="14" rx="3" fill="white"/>
+                                <text x="265" y="144" font-size="9" fill="#333" text-anchor="middle" font-weight="600">MD</text>
+
+                                <!-- Category → Page (Lookup: optional wizard tab) -->
+                                <line x1="155" y1="137" x2="175" y2="204" stroke="#333" stroke-width="1.5" stroke-dasharray="6,4"/>
+                                <circle cx="175" cy="204" r="3.5" fill="white" stroke="#333" stroke-width="1.5"/>
+                                <rect x="158" y="165" width="56" height="13" rx="3" fill="white" stroke="#ddd" stroke-width="0.5"/>
+                                <text x="186" y="175" font-size="8" fill="#666" text-anchor="middle" font-weight="600">Lookup</text>
+
+                                <!-- Page (still Master-Detail to Form; optional Category) -->
+                                <rect x="175" y="178" width="180" height="52" rx="8" fill="#0070d2" stroke="#0070d2" stroke-width="2"/>
+                                <rect x="175" y="196" width="180" height="34" rx="0 0 8 8" fill="white" stroke="#0070d2" stroke-width="2"/>
+                                <text x="265" y="192" font-size="12" font-weight="bold" fill="white" text-anchor="middle">C_Page__c</text>
+                                <text x="185" y="212" font-size="9" fill="#3e3e3c">MD→Form · Lk→Category · Order</text>
+
+                                <!-- Page → Section line + label -->
+                                <line x1="265" y1="230" x2="265" y2="263" stroke="#333" stroke-width="1.5" stroke-dasharray="6,4"/>
+                                <circle cx="265" cy="263" r="3.5" fill="white" stroke="#333" stroke-width="1.5"/>
+                                <rect x="237" y="238" width="56" height="14" rx="3" fill="white"/>
+                                <text x="265" y="249" font-size="9" fill="#333" text-anchor="middle" font-weight="600">Lookup</text>
+
+                                <!-- Section -->
+                                <rect x="175" y="263" width="180" height="52" rx="8" fill="#0070d2" stroke="#0070d2" stroke-width="2"/>
+                                <rect x="175" y="281" width="180" height="34" rx="0 0 8 8" fill="white" stroke="#0070d2" stroke-width="2"/>
+                                <text x="265" y="277" font-size="12" font-weight="bold" fill="white" text-anchor="middle">C_Section__c</text>
+                                <text x="185" y="297" font-size="9.5" fill="#3e3e3c">Name, Order, Weight, Bonus</text>
+
+                                <!-- Section → Question line + label -->
+                                <line x1="265" y1="315" x2="265" y2="348" stroke="#333" stroke-width="1.5" stroke-dasharray="6,4"/>
+                                <circle cx="265" cy="348" r="3.5" fill="white" stroke="#333" stroke-width="1.5"/>
+                                <rect x="237" y="323" width="56" height="14" rx="3" fill="white"/>
+                                <text x="265" y="334" font-size="9" fill="#333" text-anchor="middle" font-weight="600">Lookup</text>
+
+                                <!-- Question -->
+                                <rect x="175" y="348" width="180" height="62" rx="8" fill="#0070d2" stroke="#0070d2" stroke-width="2"/>
+                                <rect x="175" y="366" width="180" height="44" rx="0 0 8 8" fill="white" stroke="#0070d2" stroke-width="2"/>
+                                <text x="265" y="362" font-size="12" font-weight="bold" fill="white" text-anchor="middle">C_Question__c</text>
+                                <text x="185" y="382" font-size="9.5" fill="#3e3e3c">Type, Text, Order, Weight</text>
+                                <text x="185" y="396" font-size="9.5" fill="#3e3e3c">Required, Help Text</text>
+
+                                <!-- Question → Response line + label -->
+                                <line x1="265" y1="410" x2="265" y2="443" stroke="#333" stroke-width="2.5"/>
+                                <circle cx="265" cy="443" r="4" fill="#333"/>
+                                <rect x="243" y="418" width="45" height="14" rx="3" fill="white"/>
+                                <text x="265" y="429" font-size="9" fill="#333" text-anchor="middle" font-weight="600">MD</text>
+
+                                <!-- Response -->
+                                <rect x="175" y="443" width="180" height="52" rx="8" fill="#0070d2" stroke="#0070d2" stroke-width="2"/>
+                                <rect x="175" y="461" width="180" height="34" rx="0 0 8 8" fill="white" stroke="#0070d2" stroke-width="2"/>
+                                <text x="265" y="457" font-size="12" font-weight="bold" fill="white" text-anchor="middle">C_Response__c</text>
+                                <text x="185" y="477" font-size="9.5" fill="#3e3e3c">Text, Points, Order, Locks Q</text>
+
+
+                                <!-- ═══════════ SUPPORTING OBJECTS (left side) ═══════════ -->
+
+                                <!-- Form Target (left column; below Category to avoid overlap) -->
+                                <rect x="10" y="172" width="140" height="52" rx="8" fill="#04844b" stroke="#04844b" stroke-width="2"/>
+                                <rect x="10" y="190" width="140" height="34" rx="0 0 8 8" fill="white" stroke="#04844b" stroke-width="2"/>
+                                <text x="80" y="186" font-size="10" font-weight="bold" fill="white" text-anchor="middle">C_Form_Target__c</text>
+                                <text x="20" y="206" font-size="9.5" fill="#3e3e3c">Target Object, Resolution</text>
+                                <text x="20" y="219" font-size="9.5" fill="#3e3e3c">Operation, Active, Order</text>
+
+                                <!-- Form → Form Target line (MD) - routed left of Category box -->
+                                <polyline points="175,76 10,76 10,165 80,165 80,172" fill="none" stroke="#04844b" stroke-width="2.5"/>
+                                <circle cx="80" cy="172" r="4" fill="#04844b"/>
+                                <rect x="14" y="88" width="34" height="14" rx="3" fill="white"/>
+                                <text x="31" y="99" font-size="9" fill="#04844b" text-anchor="middle" font-weight="600">MD</text>
+
+                                <!-- Field Mapping (below Form Target) -->
+                                <rect x="10" y="332" width="140" height="52" rx="8" fill="#04844b" stroke="#04844b" stroke-width="2"/>
+                                <rect x="10" y="350" width="140" height="34" rx="0 0 8 8" fill="white" stroke="#04844b" stroke-width="2"/>
+                                <text x="80" y="346" font-size="10" font-weight="bold" fill="white" text-anchor="middle">C_Field_Mapping__c</text>
+                                <text x="20" y="366" font-size="9.5" fill="#3e3e3c">Target Object/Field</text>
+                                <text x="20" y="379" font-size="9.5" fill="#3e3e3c">Mapping Type, Active</text>
+
+                                <!-- Form Target → Field Mapping line (Lookup) -->
+                                <line x1="80" y1="224" x2="80" y2="332" stroke="#04844b" stroke-width="1.5" stroke-dasharray="6,4"/>
+                                <circle cx="80" cy="332" r="3.5" fill="white" stroke="#04844b" stroke-width="1.5"/>
+                                <rect x="58" y="272" width="45" height="14" rx="3" fill="white"/>
+                                <text x="80" y="283" font-size="9" fill="#04844b" text-anchor="middle" font-weight="600">Lk</text>
+
+                                <!-- Question → Field Mapping line -->
+                                <line x1="175" y1="379" x2="150" y2="379" stroke="#04844b" stroke-width="1.5" stroke-dasharray="6,4"/>
+                                <circle cx="150" cy="379" r="3.5" fill="white" stroke="#04844b" stroke-width="1.5"/>
+                                <rect x="152" y="367" width="22" height="12" rx="2" fill="white"/>
+                                <text x="163" y="376" font-size="8" fill="#04844b" text-anchor="middle" font-weight="600">Lk</text>
+
+                                <!-- ═══════════ SELF-REFERENTIAL LOOKUPS ═══════════ -->
+
+                                <!-- Question → Question (Source Question / Library) -->
+                                <path d="M 355 379 L 372 379 C 384 379, 384 391, 372 391 L 355 391" fill="none" stroke="#0070d2" stroke-width="1.2" stroke-dasharray="4,3"/>
+                                <circle cx="355" cy="391" r="2.5" fill="white" stroke="#0070d2" stroke-width="1.2"/>
+                                <text x="390" y="388" font-size="7.5" fill="#0070d2" font-weight="600">Self Lk (Source Q)</text>
+
+                                <!-- Response → Response (Source Response / Library) -->
+                                <path d="M 355 469 L 372 469 C 384 469, 384 481, 372 481 L 355 481" fill="none" stroke="#0070d2" stroke-width="1.2" stroke-dasharray="4,3"/>
+                                <circle cx="355" cy="481" r="2.5" fill="white" stroke="#0070d2" stroke-width="1.2"/>
+                                <text x="390" y="478" font-size="7.5" fill="#0070d2" font-weight="600">Self Lk (Source R)</text>
+
+
+                                <!-- ═══════════ RUNTIME OBJECTS (right side) ═══════════ -->
+
+                                <!-- Form Submission -->
+                                <rect x="660" y="50" width="195" height="62" rx="8" fill="#e87722" stroke="#e87722" stroke-width="2"/>
+                                <rect x="660" y="68" width="195" height="44" rx="0 0 8 8" fill="white" stroke="#e87722" stroke-width="2"/>
+                                <text x="757" y="64" font-size="11" font-weight="bold" fill="white" text-anchor="middle">C_Form_Submission__c</text>
+                                <text x="670" y="84" font-size="9.5" fill="#3e3e3c">Status, Score, Draft JSON</text>
+                                <text x="670" y="98" font-size="9.5" fill="#3e3e3c">Account / Lead / Contact</text>
+
+                                <!-- Form → Form Submission (Lookup) -->
+                                <line x1="355" y1="76" x2="660" y2="76" stroke="#999" stroke-width="1.5" stroke-dasharray="6,4"/>
+                                <circle cx="660" cy="76" r="3.5" fill="white" stroke="#999" stroke-width="1.5"/>
+                                <rect x="485" y="64" width="56" height="14" rx="3" fill="white" stroke="#ddd" stroke-width="0.5"/>
+                                <text x="513" y="75" font-size="9" fill="#666" text-anchor="middle" font-weight="600">Lookup</text>
+
+                                <!-- Form Submission → Section Response (MD) -->
+                                <line x1="757" y1="112" x2="757" y2="155" stroke="#333" stroke-width="2.5"/>
+                                <circle cx="757" cy="155" r="4" fill="#333"/>
+                                <rect x="735" y="125" width="45" height="14" rx="3" fill="white"/>
+                                <text x="757" y="136" font-size="9" fill="#333" text-anchor="middle" font-weight="600">MD</text>
+
+                                <!-- Section Response -->
+                                <rect x="660" y="155" width="195" height="62" rx="8" fill="#e87722" stroke="#e87722" stroke-width="2"/>
+                                <rect x="660" y="173" width="195" height="44" rx="0 0 8 8" fill="white" stroke="#e87722" stroke-width="2"/>
+                                <text x="757" y="169" font-size="11" font-weight="bold" fill="white" text-anchor="middle">C_Section_Response__c</text>
+                                <text x="670" y="189" font-size="9.5" fill="#3e3e3c">Weight, Max/Earned Pts, Score</text>
+                                <text x="670" y="203" font-size="9.5" fill="#3e3e3c">Section Name, Order, Bonus</text>
+
+                                <!-- Section Response → Question Response (MD) -->
+                                <line x1="757" y1="217" x2="757" y2="260" stroke="#333" stroke-width="2.5"/>
+                                <circle cx="757" cy="260" r="4" fill="#333"/>
+                                <rect x="735" y="230" width="45" height="14" rx="3" fill="white"/>
+                                <text x="757" y="241" font-size="9" fill="#333" text-anchor="middle" font-weight="600">MD</text>
+
+                                <!-- Question Response -->
+                                <rect x="660" y="260" width="195" height="62" rx="8" fill="#e87722" stroke="#e87722" stroke-width="2"/>
+                                <rect x="660" y="278" width="195" height="44" rx="0 0 8 8" fill="white" stroke="#e87722" stroke-width="2"/>
+                                <text x="757" y="274" font-size="11" font-weight="bold" fill="white" text-anchor="middle">C_Question_Response__c</text>
+                                <text x="670" y="294" font-size="9.5" fill="#3e3e3c">Response Text, Points</text>
+                                <text x="670" y="308" font-size="9.5" fill="#3e3e3c">Question Weight, Table Data</text>
+
+                                <!-- ═══════════ CROSS-REFERENCES (runtime → design) ═══════════ -->
+
+                                <!-- Section Response → Section (Lookup) -->
+                                <line x1="660" y1="195" x2="530" y2="195" stroke="#999" stroke-width="1.2" stroke-dasharray="5,3"/>
+                                <line x1="530" y1="195" x2="530" y2="289" stroke="#999" stroke-width="1.2" stroke-dasharray="5,3"/>
+                                <line x1="530" y1="289" x2="355" y2="289" stroke="#999" stroke-width="1.2" stroke-dasharray="5,3"/>
+                                <circle cx="355" cy="289" r="3" fill="white" stroke="#999" stroke-width="1.2"/>
+                                <rect x="470" y="280" width="68" height="13" rx="3" fill="white" stroke="#ddd" stroke-width="0.5"/>
+                                <text x="504" y="290" font-size="8" fill="#888" text-anchor="middle">Lk → Section</text>
+
+                                <!-- Question Response → Question (Lookup) -->
+                                <line x1="660" y1="290" x2="550" y2="290" stroke="#999" stroke-width="1.2" stroke-dasharray="5,3"/>
+                                <line x1="550" y1="290" x2="550" y2="379" stroke="#999" stroke-width="1.2" stroke-dasharray="5,3"/>
+                                <line x1="550" y1="379" x2="355" y2="379" stroke="#999" stroke-width="1.2" stroke-dasharray="5,3"/>
+                                <circle cx="355" cy="379" r="3" fill="white" stroke="#999" stroke-width="1.2"/>
+                                <rect x="460" y="371" width="80" height="13" rx="3" fill="white" stroke="#ddd" stroke-width="0.5"/>
+                                <text x="500" y="381" font-size="8" fill="#888" text-anchor="middle">Lk → Question</text>
+
+                                <!-- Question Response → Response (Lookup) -->
+                                <line x1="660" y1="305" x2="570" y2="305" stroke="#999" stroke-width="1.2" stroke-dasharray="5,3"/>
+                                <line x1="570" y1="305" x2="570" y2="469" stroke="#999" stroke-width="1.2" stroke-dasharray="5,3"/>
+                                <line x1="570" y1="469" x2="355" y2="469" stroke="#999" stroke-width="1.2" stroke-dasharray="5,3"/>
+                                <circle cx="355" cy="469" r="3" fill="white" stroke="#999" stroke-width="1.2"/>
+                                <rect x="460" y="461" width="84" height="13" rx="3" fill="white" stroke="#ddd" stroke-width="0.5"/>
+                                <text x="502" y="471" font-size="8" fill="#888" text-anchor="middle">Lk → Response</text>
+
+                                <!-- Color Key -->
+                                <rect x="880" y="8" width="170" height="68" rx="6" fill="white" stroke="#d8dde6" stroke-width="1"/>
+                                <text x="895" y="26" font-size="11" font-weight="bold" fill="#032d60">Color Key</text>
+                                <rect x="895" y="34" width="10" height="10" rx="2" fill="#0070d2"/>
+                                <text x="912" y="44" font-size="9.5" fill="#3e3e3c">Form Definition (6)</text>
+                                <rect x="895" y="50" width="10" height="10" rx="2" fill="#e87722"/>
+                                <text x="912" y="60" font-size="9.5" fill="#3e3e3c">Runtime / Submission (3)</text>
+                                <rect x="895" y="66" width="10" height="10" rx="2" fill="#04844b"/>
+                                <text x="912" y="76" font-size="9.5" fill="#3e3e3c">Data Integration (2)</text>
+
+                            </svg>
+                        </div>
+
+                        <!-- ════════════════════════════════════════════════ -->
+                        <!-- ERD 2/3: Translation Connections                -->
+                        <!-- ════════════════════════════════════════════════ -->
+                        <p class="erd-title slds-m-top_large" style="color: #9050e9;">2/3 — Translation Connections</p>
+                        <div class="erd-container">
+                            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 700 290" class="erd-svg-small">
+
+                                <rect x="0" y="0" width="700" height="290" rx="8" fill="#faf7fd"/>
+
+                                <!-- Translation (center) -->
+                                <rect x="250" y="110" width="200" height="65" rx="8" fill="#9050e9" stroke="#9050e9" stroke-width="2"/>
+                                <rect x="250" y="128" width="200" height="47" rx="0 0 8 8" fill="white" stroke="#9050e9" stroke-width="2"/>
+                                <text x="350" y="124" font-size="12" font-weight="bold" fill="white" text-anchor="middle">C_Translation__c</text>
+                                <text x="260" y="145" font-size="9.5" fill="#3e3e3c">Language, Field Name</text>
+                                <text x="260" y="159" font-size="9.5" fill="#3e3e3c">Translated Text, Record Type</text>
+
+                                <!-- Page (top-left, reference box) -->
+                                <rect x="30" y="25" width="150" height="42" rx="8" fill="#e8f4fd" stroke="#0070d2" stroke-width="1.5" stroke-dasharray="6,3"/>
+                                <text x="105" y="51" font-size="11" font-weight="bold" fill="#0070d2" text-anchor="middle">C_Page__c</text>
+
+                                <!-- Section (top-right, reference box) -->
+                                <rect x="520" y="25" width="150" height="42" rx="8" fill="#e8f4fd" stroke="#0070d2" stroke-width="1.5" stroke-dasharray="6,3"/>
+                                <text x="595" y="51" font-size="11" font-weight="bold" fill="#0070d2" text-anchor="middle">C_Section__c</text>
+
+                                <!-- Question (bottom-left, reference box) -->
+                                <rect x="30" y="222" width="150" height="42" rx="8" fill="#e8f4fd" stroke="#0070d2" stroke-width="1.5" stroke-dasharray="6,3"/>
+                                <text x="105" y="248" font-size="11" font-weight="bold" fill="#0070d2" text-anchor="middle">C_Question__c</text>
+
+                                <!-- Response (bottom-right, reference box) -->
+                                <rect x="520" y="222" width="150" height="42" rx="8" fill="#e8f4fd" stroke="#0070d2" stroke-width="1.5" stroke-dasharray="6,3"/>
+                                <text x="595" y="248" font-size="11" font-weight="bold" fill="#0070d2" text-anchor="middle">C_Response__c</text>
+
+                                <!-- Translation → Page line -->
+                                <line x1="280" y1="110" x2="160" y2="67" stroke="#9050e9" stroke-width="1.5" stroke-dasharray="5,3"/>
+                                <circle cx="160" cy="67" r="3" fill="white" stroke="#9050e9" stroke-width="1.5"/>
+                                <rect x="195" y="78" width="50" height="14" rx="3" fill="white" stroke="#d8dde6" stroke-width="0.5"/>
+                                <text x="220" y="89" font-size="8" fill="#9050e9" text-anchor="middle" font-weight="600">Lookup</text>
+
+                                <!-- Translation → Section line -->
+                                <line x1="420" y1="110" x2="540" y2="67" stroke="#9050e9" stroke-width="1.5" stroke-dasharray="5,3"/>
+                                <circle cx="540" cy="67" r="3" fill="white" stroke="#9050e9" stroke-width="1.5"/>
+                                <rect x="455" y="78" width="50" height="14" rx="3" fill="white" stroke="#d8dde6" stroke-width="0.5"/>
+                                <text x="480" y="89" font-size="8" fill="#9050e9" text-anchor="middle" font-weight="600">Lookup</text>
+
+                                <!-- Translation → Question line -->
+                                <line x1="280" y1="175" x2="160" y2="222" stroke="#9050e9" stroke-width="1.5" stroke-dasharray="5,3"/>
+                                <circle cx="160" cy="222" r="3" fill="white" stroke="#9050e9" stroke-width="1.5"/>
+                                <rect x="195" y="193" width="50" height="14" rx="3" fill="white" stroke="#d8dde6" stroke-width="0.5"/>
+                                <text x="220" y="204" font-size="8" fill="#9050e9" text-anchor="middle" font-weight="600">Lookup</text>
+
+                                <!-- Translation → Response line -->
+                                <line x1="420" y1="175" x2="540" y2="222" stroke="#9050e9" stroke-width="1.5" stroke-dasharray="5,3"/>
+                                <circle cx="540" cy="222" r="3" fill="white" stroke="#9050e9" stroke-width="1.5"/>
+                                <rect x="455" y="193" width="50" height="14" rx="3" fill="white" stroke="#d8dde6" stroke-width="0.5"/>
+                                <text x="480" y="204" font-size="8" fill="#9050e9" text-anchor="middle" font-weight="600">Lookup</text>
+
+                                <!-- Footnote -->
+                                <text x="350" y="280" font-size="9" fill="#706e6b" text-anchor="middle" font-style="italic">Dashed boxes reference objects defined in the Core ERD above</text>
+
+                            </svg>
+                        </div>
+
+                        <!-- ════════════════════════════════════════════════ -->
+                        <!-- ERD 3/3: Dependency Connections                 -->
+                        <!-- ════════════════════════════════════════════════ -->
+                        <p class="erd-title slds-m-top_large" style="color: #c23934;">3/3 — Dependency Connections</p>
+                        <div class="erd-container">
+                            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 750 270" class="erd-svg-small">
+
+                                <rect x="0" y="0" width="750" height="270" rx="8" fill="#fdf5f5"/>
+
+                                <!-- Response (left - trigger) -->
+                                <rect x="30" y="100" width="165" height="60" rx="8" fill="#e8f4fd" stroke="#0070d2" stroke-width="1.5" stroke-dasharray="6,3"/>
+                                <text x="112" y="127" font-size="11" font-weight="bold" fill="#0070d2" text-anchor="middle">C_Response__c</text>
+                                <text x="112" y="148" font-size="8.5" fill="#706e6b" text-anchor="middle" font-style="italic">(trigger)</text>
+
+                                <!-- Dependency (center) -->
+                                <rect x="275" y="85" width="200" height="75" rx="8" fill="#c23934" stroke="#c23934" stroke-width="2"/>
+                                <rect x="275" y="103" width="200" height="57" rx="0 0 8 8" fill="white" stroke="#c23934" stroke-width="2"/>
+                                <text x="375" y="99" font-size="12" font-weight="bold" fill="white" text-anchor="middle">C_Dependency__c</text>
+                                <text x="285" y="120" font-size="9.5" fill="#3e3e3c">Target Type, Action</text>
+                                <text x="285" y="134" font-size="9.5" fill="#3e3e3c">Logic Group, Operator</text>
+                                <text x="285" y="148" font-size="9.5" fill="#3e3e3c">Logic Operator</text>
+
+                                <!-- Page (top-right target) -->
+                                <rect x="565" y="20" width="150" height="42" rx="8" fill="#e8f4fd" stroke="#0070d2" stroke-width="1.5" stroke-dasharray="6,3"/>
+                                <text x="640" y="46" font-size="11" font-weight="bold" fill="#0070d2" text-anchor="middle">C_Page__c</text>
+
+                                <!-- Section (middle-right target) -->
+                                <rect x="565" y="100" width="150" height="42" rx="8" fill="#e8f4fd" stroke="#0070d2" stroke-width="1.5" stroke-dasharray="6,3"/>
+                                <text x="640" y="126" font-size="11" font-weight="bold" fill="#0070d2" text-anchor="middle">C_Section__c</text>
+
+                                <!-- Question (bottom-right target) -->
+                                <rect x="565" y="180" width="150" height="42" rx="8" fill="#e8f4fd" stroke="#0070d2" stroke-width="1.5" stroke-dasharray="6,3"/>
+                                <text x="640" y="206" font-size="11" font-weight="bold" fill="#0070d2" text-anchor="middle">C_Question__c</text>
+
+                                <!-- Response → Dependency (Controlling Response) -->
+                                <line x1="195" y1="130" x2="275" y2="130" stroke="#c23934" stroke-width="2"/>
+                                <circle cx="275" cy="130" r="3.5" fill="white" stroke="#c23934" stroke-width="1.5"/>
+                                <rect x="205" y="113" width="60" height="13" rx="3" fill="white" stroke="#c23934" stroke-width="0.5"/>
+                                <text x="235" y="123" font-size="7.5" fill="#c23934" text-anchor="middle" font-weight="600">Ctrl Resp</text>
+
+                                <!-- Dependency → Page (Target) -->
+                                <line x1="475" y1="100" x2="530" y2="50" stroke="#c23934" stroke-width="1.5" stroke-dasharray="5,3"/>
+                                <line x1="530" y1="50" x2="565" y2="41" stroke="#c23934" stroke-width="1.5" stroke-dasharray="5,3"/>
+                                <circle cx="565" cy="41" r="3" fill="white" stroke="#c23934" stroke-width="1.5"/>
+                                <rect x="500" y="58" width="50" height="13" rx="3" fill="white" stroke="#c23934" stroke-width="0.5"/>
+                                <text x="525" y="68" font-size="7.5" fill="#c23934" text-anchor="middle" font-weight="600">Tgt Page</text>
+
+                                <!-- Dependency → Section (Target) -->
+                                <line x1="475" y1="121" x2="565" y2="121" stroke="#c23934" stroke-width="1.5" stroke-dasharray="5,3"/>
+                                <circle cx="565" cy="121" r="3" fill="white" stroke="#c23934" stroke-width="1.5"/>
+                                <rect x="500" y="108" width="50" height="13" rx="3" fill="white" stroke="#c23934" stroke-width="0.5"/>
+                                <text x="525" y="118" font-size="7.5" fill="#c23934" text-anchor="middle" font-weight="600">Tgt Sect</text>
+
+                                <!-- Dependency → Question (Target) -->
+                                <line x1="475" y1="145" x2="530" y2="190" stroke="#c23934" stroke-width="1.5" stroke-dasharray="5,3"/>
+                                <line x1="530" y1="190" x2="565" y2="201" stroke="#c23934" stroke-width="1.5" stroke-dasharray="5,3"/>
+                                <circle cx="565" cy="201" r="3" fill="white" stroke="#c23934" stroke-width="1.5"/>
+                                <rect x="500" y="185" width="50" height="13" rx="3" fill="white" stroke="#c23934" stroke-width="0.5"/>
+                                <text x="525" y="195" font-size="7.5" fill="#c23934" text-anchor="middle" font-weight="600">Tgt Quest</text>
+
+                                <!-- Flow label -->
+                                <text x="112" y="80" font-size="9" fill="#706e6b" text-anchor="middle" font-style="italic">When selected...</text>
+                                <text x="640" y="245" font-size="9" fill="#706e6b" text-anchor="middle" font-style="italic">...show/hide target</text>
+
+                                <!-- Footnote -->
+                                <text x="375" y="260" font-size="9" fill="#706e6b" text-anchor="middle" font-style="italic">Dashed boxes reference objects defined in the Core ERD above</text>
+
+                            </svg>
+                        </div>
+
+                    </div>
+                </lightning-accordion-section>
+
+                <!-- Hierarchy -->
+                <lightning-accordion-section name="hierarchy" label="Object Hierarchy">
+                    <div class="slds-p-around_small">
+                        <div class="slds-box slds-theme_default">
+                            <p class="slds-text-body_regular slds-m-bottom_small">
+                                <strong>Form Definition (Design Time):</strong>
+                            </p>
+                            <div class="hierarchy-tree slds-m-left_medium">
+                                <p class="slds-text-body_regular">
+                                    <lightning-icon icon-name="standard:document" size="xx-small" class="slds-m-right_xx-small"></lightning-icon>
+                                    <strong>Form</strong>
+                                </p>
+                                <div class="slds-m-left_large">
+                                    <p class="slds-text-body_regular">
+                                        <lightning-icon icon-name="standard:hierarchy" size="xx-small" class="slds-m-right_xx-small"></lightning-icon>
+                                        Category (Master-Detail to Form — wizard / tab grouping in Visual Builder)
+                                    </p>
+                                    <div>
+                                        <p class="slds-text-body_regular">
+                                            <lightning-icon icon-name="standard:webpage" size="xx-small" class="slds-m-right_xx-small"></lightning-icon>
+                                            Page (Master-Detail to Form; optional Lookup to Category)
+                                        </p>
+                                        <div class="slds-m-left_large">
+                                            <p class="slds-text-body_regular">
+                                                <lightning-icon icon-name="standard:record_layout" size="xx-small" class="slds-m-right_xx-small"></lightning-icon>
+                                                Section (Lookup to Page)
+                                            </p>
+                                            <div class="slds-m-left_large">
+                                                <p class="slds-text-body_regular">
+                                                    <lightning-icon icon-name="standard:question_feed" size="xx-small" class="slds-m-right_xx-small"></lightning-icon>
+                                                    Question (Lookup to Section)
+                                                </p>
+                                                <div class="slds-m-left_large">
+                                                    <p class="slds-text-body_regular">
+                                                        <lightning-icon icon-name="standard:choice" size="xx-small" class="slds-m-right_xx-small"></lightning-icon>
+                                                        Response (Master-Detail to Question)
+                                                    </p>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <p class="slds-text-body_regular slds-m-top_medium slds-m-bottom_small">
+                                <strong>Supporting Objects:</strong>
+                            </p>
+                            <div class="slds-m-left_medium">
+                                <p class="slds-text-body_regular">
+                                    <lightning-icon icon-name="standard:flow" size="xx-small" class="slds-m-right_xx-small"></lightning-icon>
+                                    Dependency (links Response to a target Category/Page/Section/Question)
+                                </p>
+                                <p class="slds-text-body_regular">
+                                    <lightning-icon icon-name="standard:targets" size="xx-small" class="slds-m-right_xx-small"></lightning-icon>
+                                    Form Target (Master-Detail to Form - defines target object for writeback)
+                                </p>
+                                <p class="slds-text-body_regular slds-m-left_large">
+                                    <lightning-icon icon-name="standard:data_mapping" size="xx-small" class="slds-m-right_xx-small"></lightning-icon>
+                                    Field Mapping (Lookup to Form Target + Question)
+                                </p>
+                                <p class="slds-text-body_regular">
+                                    <lightning-icon icon-name="standard:translation" size="xx-small" class="slds-m-right_xx-small"></lightning-icon>
+                                    Translation (stores translated text for any element)
+                                </p>
+                            </div>
+
+                            <p class="slds-text-body_regular slds-m-top_medium slds-m-bottom_small">
+                                <strong>Runtime (Submission Time):</strong>
+                            </p>
+                            <div class="slds-m-left_medium">
+                                <p class="slds-text-body_regular">
+                                    <lightning-icon icon-name="standard:task" size="xx-small" class="slds-m-right_xx-small"></lightning-icon>
+                                    <strong>Form Submission</strong> (links to Account/Lead/Contact)
+                                </p>
+                                <div class="slds-m-left_large">
+                                    <p class="slds-text-body_regular">
+                                        <lightning-icon icon-name="standard:record" size="xx-small" class="slds-m-right_xx-small"></lightning-icon>
+                                        Section Response (Master-Detail to Submission)
+                                    </p>
+                                    <div class="slds-m-left_large">
+                                        <p class="slds-text-body_regular">
+                                            <lightning-icon icon-name="standard:answer_best" size="xx-small" class="slds-m-right_xx-small"></lightning-icon>
+                                            Question Response (Master-Detail to Section Response)
+                                        </p>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </lightning-accordion-section>
+
+                <!-- How to Create a Form -->
+                <lightning-accordion-section name="howto" label="How to Create a Form (Step by Step)">
+                    <div class="slds-p-around_small">
+                        <ol class="slds-list_ordered">
+                            <template for:each={workflowSteps} for:item="step">
+                                <li class="slds-m-bottom_small" key={step.number}>
+                                    <div class="slds-box slds-theme_shade">
+                                        <p class="slds-text-heading_small">
+                                            <strong>Step {step.number}: {step.title}</strong>
+                                        </p>
+                                        <p class="slds-text-body_regular">{step.description}</p>
+                                    </div>
+                                </li>
+                            </template>
+                        </ol>
+                    </div>
+                </lightning-accordion-section>
+
+                <!-- Scoring -->
+                <lightning-accordion-section name="scoring" label="How Scoring Works">
+                    <div class="slds-p-around_small">
+                        <div class="slds-box slds-theme_shade">
+                            <p class="slds-text-body_regular slds-m-bottom_small">
+                                <strong>Section Weight:</strong> Each Section has a weight percentage. 
+                                All non-bonus, non-excluded section weights should add up to 100%.
+                            </p>
+                            <p class="slds-text-body_regular slds-m-bottom_small">
+                                <strong>Question Points:</strong> Each Response option has a point value. 
+                                The highest possible points for a question becomes the "max points" for that question.
+                            </p>
+                            <p class="slds-text-body_regular slds-m-bottom_small">
+                                <strong>Section Score:</strong> (Earned Points / Max Points) x 100 = Section Score %
+                            </p>
+                            <p class="slds-text-body_regular slds-m-bottom_small">
+                                <strong>Final Score:</strong> Sum of (Section Score x Section Weight) / Total Weight x 100
+                            </p>
+                            <p class="slds-text-body_regular slds-m-bottom_small">
+                                <strong>Bonus Sections:</strong> Bonus section scores are added on top of the final score, 
+                                allowing the total to potentially exceed 100% (capped at 100%).
+                            </p>
+                            <p class="slds-text-body_regular">
+                                <strong>Locks Question:</strong> If a Response has "Locks Question" checked, 
+                                selecting it sets the question weight to 0, effectively removing it from scoring.
+                            </p>
+                        </div>
+                    </div>
+                </lightning-accordion-section>
+
+                <!-- Dependencies -->
+                <lightning-accordion-section name="dependencies" label="How Dependencies Work">
+                    <div class="slds-p-around_small">
+                        <div class="slds-box slds-theme_shade">
+                            <p class="slds-text-body_regular slds-m-bottom_small">
+                                Dependencies control the dynamic show/hide behaviour of form elements:
+                            </p>
+                            <ul class="slds-list_dotted slds-m-bottom_small">
+                                <li><strong>Controlling Response:</strong> The Response that triggers the dependency</li>
+                                <li><strong>Target Type:</strong> What to affect - a Page, Section, or Question</li>
+                                <li><strong>Action:</strong> Show, Hide, or Require the target when the controlling response is selected</li>
+                                <li><strong>Logic Group &amp; Operator:</strong> Combine multiple dependencies with AND/OR logic</li>
+                            </ul>
+                            <p class="slds-text-body_regular slds-m-bottom_small">
+                                <strong>"Show" action:</strong> The target is hidden by default and only becomes visible 
+                                when the controlling response is selected.
+                            </p>
+                            <p class="slds-text-body_regular slds-m-bottom_small">
+                                <strong>"Hide" action:</strong> The target is visible by default and becomes hidden 
+                                when the controlling response is selected.
+                            </p>
+                            <p class="slds-text-body_regular">
+                                <strong>"Require" action:</strong> Makes a target question conditionally required 
+                                when the controlling response is selected. Only applicable to Question targets.
+                            </p>
+                        </div>
+                    </div>
+                </lightning-accordion-section>
+
+                <!-- Deployment Guide -->
+                <lightning-accordion-section name="deployment" label="How to Deploy Forms">
+                    <div class="slds-p-around_small">
+                        <p class="slds-text-body_regular slds-m-bottom_medium">
+                            The Form Renderer component can be deployed in multiple ways. Choose the option that best fits your use case.
+                        </p>
+
+                        <template for:each={deploymentOptions} for:item="opt">
+                            <div class="slds-box slds-m-bottom_small" key={opt.title}>
+                                <div class="slds-grid slds-grid_vertical-align-center slds-m-bottom_x-small">
+                                    <h3 class="slds-text-heading_small">
+                                        <strong>{opt.title}</strong>
+                                    </h3>
+                                    <template if:true={opt.recommended}>
+                                        <span class="slds-badge slds-theme_success slds-m-left_small">Recommended</span>
+                                    </template>
+                                </div>
+                                <p class="slds-text-body_regular slds-m-bottom_x-small">
+                                    <strong>When to use:</strong> {opt.whenToUse}
+                                </p>
+                                <p class="slds-text-body_regular slds-m-bottom_x-small">
+                                    <strong>Steps:</strong> {opt.steps}
+                                </p>
+                                <p class="slds-text-body_small slds-text-color_weak">
+                                    <strong>Properties:</strong> {opt.properties}
+                                </p>
+                            </div>
+                        </template>
+
+                        <div class="slds-box slds-theme_info slds-m-top_medium">
+                            <p class="slds-text-body_regular">
+                                <strong>Record Context (JSON):</strong> For inbound pre-population, pass a JSON map to the recordContext property. Keys must match the Context Key (C_Context_Key__c) on your Form Targets. Example: account: 001XXXX, contact: 003XXXX (wrapped in curly braces as valid JSON). This is also available in the Form Renderer tab via the "Record Context (JSON)" textarea for testing.
+                            </p>
+                        </div>
+                    </div>
+                </lightning-accordion-section>
+
+                <!-- Testing Instructions -->
+                <lightning-accordion-section name="testing" label="How to Test the Form">
+                    <div class="slds-p-around_small">
+                        <p class="slds-text-body_regular slds-m-bottom_medium">
+                            Follow these steps to verify the entire system is working correctly:
+                        </p>
+                        <ol class="slds-list_ordered">
+                            <template for:each={testingSteps} for:item="step">
+                                <li class="slds-m-bottom_small" key={step.number}>
+                                    <div class="slds-box slds-theme_shade">
+                                        <p class="slds-text-heading_small">
+                                            <strong>Step {step.number}: {step.title}</strong>
+                                        </p>
+                                        <p class="slds-text-body_regular">{step.description}</p>
+                                    </div>
+                                </li>
+                            </template>
+                        </ol>
+                    </div>
+                </lightning-accordion-section>
+
+                <!-- Known Limitations -->
+                <lightning-accordion-section name="limitations" label="Known Limitations">
+                    <div class="slds-p-around_small">
+                        <p class="slds-text-body_regular slds-m-bottom_medium">
+                            Current gaps and behaviors to be aware of when planning or extending the product.
+                        </p>
+                        <template for:each={knownLimitations} for:item="lim">
+                            <div class="slds-box slds-m-bottom_small slds-theme_shade" key={lim.title}>
+                                <p class="slds-text-heading_small slds-m-bottom_xx-small"><strong>{lim.title}</strong></p>
+                                <p class="slds-text-body_small">{lim.description}</p>
+                            </div>
+                        </template>
+                    </div>
+                </lightning-accordion-section>
+
+                <!-- Architecture Decisions -->
+                <lightning-accordion-section name="architecture" label="Architecture Decisions">
+                    <div class="slds-p-around_small">
+                        <p class="slds-text-body_regular slds-m-bottom_medium">
+                            Design choices that affect how features connect across the builder, runtime, and Salesforce platform.
+                        </p>
+                        <template for:each={architectureDecisions} for:item="arch">
+                            <div class="slds-box slds-m-bottom_small slds-theme_shade" key={arch.title}>
+                                <p class="slds-text-heading_small slds-m-bottom_xx-small"><strong>{arch.title}</strong></p>
+                                <p class="slds-text-body_small">{arch.description}</p>
+                            </div>
+                        </template>
+                    </div>
+                </lightning-accordion-section>
+
+                <!-- Product Roadmap -->
+                <lightning-accordion-section name="roadmap" label="Product Roadmap">
+                    <div class="slds-p-around_small">
+                        <p class="slds-text-body_regular slds-m-bottom_medium">
+                            Future enhancements and improvements planned for the Form Builder, ordered by estimated implementation effort (heaviest first, quickest last) so the biggest items get the most lead time for planning.
+                        </p>
+
+                        <!-- High Effort -->
+                        <div class="slds-m-bottom_large">
+                            <div class="slds-grid slds-grid_vertical-align-center slds-m-bottom_small">
+                                <lightning-icon icon-name="utility:priority" size="small" class="slds-m-right_small"></lightning-icon>
+                                <h3 class="slds-text-heading_small"><strong>High Effort</strong></h3>
+                                <span class="slds-badge slds-badge_inverse slds-m-left_small">Significant architecture / new modules</span>
+                            </div>
+                            <template for:each={roadmapHighEffort} for:item="item">
+                                <div class="slds-box slds-m-bottom_x-small" key={item.title}>
+                                    <div class="slds-grid slds-grid_vertical-align-center slds-m-bottom_xx-small">
+                                        <h4 class="slds-text-body_regular"><strong>{item.title}</strong></h4>
+                                    </div>
+                                    <p class="slds-text-body_small slds-text-color_weak">{item.description}</p>
+                                </div>
+                            </template>
+                        </div>
+
+                        <!-- Medium Effort -->
+                        <div class="slds-m-bottom_large">
+                            <div class="slds-grid slds-grid_vertical-align-center slds-m-bottom_small">
+                                <lightning-icon icon-name="utility:adjust_value" size="small" class="slds-m-right_small"></lightning-icon>
+                                <h3 class="slds-text-heading_small"><strong>Medium Effort</strong></h3>
+                                <span class="slds-badge slds-theme_warning slds-m-left_small">Extend existing modules</span>
+                            </div>
+                            <template for:each={roadmapMediumEffort} for:item="item">
+                                <div class="slds-box slds-m-bottom_x-small" key={item.title}>
+                                    <div class="slds-grid slds-grid_vertical-align-center slds-m-bottom_xx-small">
+                                        <h4 class="slds-text-body_regular"><strong>{item.title}</strong></h4>
+                                    </div>
+                                    <p class="slds-text-body_small slds-text-color_weak">{item.description}</p>
+                                </div>
+                            </template>
+                        </div>
+
+                        <!-- Low Effort -->
+                        <div class="slds-m-bottom_medium">
+                            <div class="slds-grid slds-grid_vertical-align-center slds-m-bottom_small">
+                                <lightning-icon icon-name="utility:check" size="small" class="slds-m-right_small"></lightning-icon>
+                                <h3 class="slds-text-heading_small"><strong>Low Effort</strong></h3>
+                                <span class="slds-badge slds-theme_success slds-m-left_small">Quick wins / config changes</span>
+                            </div>
+                            <template for:each={roadmapLowEffort} for:item="item">
+                                <div class="slds-box slds-m-bottom_x-small" key={item.title}>
+                                    <div class="slds-grid slds-grid_vertical-align-center slds-m-bottom_xx-small">
+                                        <h4 class="slds-text-body_regular"><strong>{item.title}</strong></h4>
+                                    </div>
+                                    <p class="slds-text-body_small slds-text-color_weak">{item.description}</p>
+                                </div>
+                            </template>
+                        </div>
+                    </div>
+                </lightning-accordion-section>
+
+                <!-- Development History -->
+                <lightning-accordion-section name="history" label="Development History">
+                    <div class="slds-p-around_small">
+                        <template for:each={developmentHistory} for:item="entry">
+                            <div class="slds-box slds-m-bottom_small slds-theme_shade" key={entry.version}>
+                                <div class="slds-grid slds-grid_vertical-align-center slds-m-bottom_x-small">
+                                    <lightning-icon icon-name="standard:task2" size="small" 
+                                        class="slds-m-right_small"></lightning-icon>
+                                    <h3 class="slds-text-heading_small">
+                                        <strong>Version {entry.version}</strong>
+                                        <span class="slds-text-body_small slds-text-color_weak slds-m-left_small">
+                                            {entry.date} - {entry.author}
+                                        </span>
+                                    </h3>
+                                </div>
+                                <p class="slds-text-body_regular">{entry.changes}</p>
+                            </div>
+                        </template>
+                    </div>
+                </lightning-accordion-section>
+
+            </lightning-accordion>
+        </div>
+    </lightning-card>
+</template>

@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<CustomField xmlns="http://soap.sforce.com/2006/04/metadata">
+    <fullName>C_Enable_Response_Records__c</fullName>
+    <defaultValue>false</defaultValue>
+    <description>When enabled, normalized Section Response and Question Response records are created upon form submission, and ScoringService and FieldMappingService run against them. When disabled, the submission is recorded but no response records, scoring, or outbound field mappings are produced (both services read from the response records and would otherwise silently write 0 / no outbound rows).</description>
+    <externalId>false</externalId>
+    <inlineHelpText>Enable to persist Section/Question Response records and run scoring + outbound field mapping. Disabling skips all three.</inlineHelpText>
+    <label>Enable Response Records</label>
+    <trackTrending>false</trackTrending>
+    <type>Checkbox</type>
+</CustomField>

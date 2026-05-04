@@ -1,0 +1,105 @@
+<template>
+    <div class={page.cssClass}>
+        <div
+            class={pageHeaderClass}
+            data-elementtype="page"
+            data-id={page.Id}
+            onclick={handleElementClick}
+            draggable="true"
+            data-itemtype="page"
+            data-parentid={page.pageCategoryParentKey}
+            ondragstart={handleDragStart}
+            ondragend={handleDragEnd}
+        >
+            <span class="drag-handle-area">
+                <span class="drag-handle">&#8942;&#8942;</span>
+                <lightning-button-icon
+                    icon-name={page.collapseIcon}
+                    alternative-text="Toggle"
+                    variant="bare-inverse"
+                    size="small"
+                    data-id={page.Id}
+                    onclick={handleToggleCollapse}
+                    class="collapse-toggle"
+                ></lightning-button-icon>
+                <lightning-icon icon-name="utility:page" size="x-small" variant="inverse" class="slds-m-right_x-small"></lightning-icon>
+                {page.Name}
+                <template if:true={page.isDependent}>
+                    <span class="type-badge dep-badge">Conditional</span>
+                </template>
+            </span>
+            <template if:false={suppressRepositoryChrome}>
+                <lightning-button-icon
+                    icon-name="utility:add"
+                    alternative-text="Add Section"
+                    variant="inverse"
+                    size="small"
+                    data-pageid={page.Id}
+                    onclick={handleQuickAddSection}
+                ></lightning-button-icon>
+            </template>
+        </div>
+
+        <template if:false={page.isCollapsed}>
+            <div class="slds-p-vertical_x-small">
+                <template if:false={suppressRepositoryChrome}>
+                    <c-form-builder-drop-zone
+                        dropzone="page"
+                        accepts="section,sectionRepository"
+                        parent-id={page.Id}
+                        position="0"
+                        is-dragging={isDragging}
+                        drag-item-type={dragItemType}
+                        drag-type={dragType}
+                        variant="line"
+                    ></c-form-builder-drop-zone>
+                </template>
+
+                <template if:true={page.hasSections}>
+                    <template for:each={page.sections} for:item="section">
+                        <c-form-builder-section-card
+                            key={section.Id}
+                            section={section}
+                            page-id={page.Id}
+                            is-dragging={isDragging}
+                            drag-item-type={dragItemType}
+                            drag-type={dragType}
+                            dragging-source-id={draggingSourceId}
+                            show-scoring={showScoring}
+                            suppress-repository-chrome={suppressRepositoryChrome}
+                        ></c-form-builder-section-card>
+                    </template>
+                </template>
+
+                <template if:false={page.hasSections}>
+                    <template if:false={suppressRepositoryChrome}>
+                        <c-form-builder-drop-zone
+                            dropzone="page"
+                            accepts="section,sectionRepository"
+                            parent-id={page.Id}
+                            position="0"
+                            is-dragging={isDragging}
+                            drag-item-type={dragItemType}
+                            drag-type={dragType}
+                            variant="empty"
+                        >
+                            <span class="slds-text-body_small slds-text-color_weak">Drag a section here</span>
+                        </c-form-builder-drop-zone>
+                    </template>
+                </template>
+            </div>
+        </template>
+        <template if:false={suppressRepositoryChrome}>
+            <c-form-builder-drop-zone
+                dropzone={pageDropzone}
+                accepts="page"
+                parent-id={pageDropParentId}
+                position={page.dropPosition}
+                is-dragging={isDragging}
+                drag-item-type={dragItemType}
+                drag-type={dragType}
+                variant="line"
+            ></c-form-builder-drop-zone>
+        </template>
+    </div>
+</template>

@@ -1,0 +1,45 @@
+.hierarchy-tree p {
+    line-height: 2;
+}
+
+:host {
+    --slds-c-card-body-padding-top: 0;
+}
+
+.erd-container {
+    background: white;
+    border: 1px solid #d8dde6;
+    border-radius: 8px;
+    padding: 16px;
+    overflow-x: auto;
+}
+
+.erd-svg {
+    width: 100%;
+    min-width: 800px;
+    height: auto;
+    display: block;
+    font-family: 'Salesforce Sans', Arial, sans-serif;
+}
+
+.erd-svg-small {
+    width: 100%;
+    min-width: 500px;
+    height: auto;
+    display: block;
+    font-family: 'Salesforce Sans', Arial, sans-serif;
+}
+
+.erd-title {
+    font-size: 1rem;
+    font-weight: 700;
+    margin-bottom: 0.5rem;
+    padding-left: 4px;
+}
+
+.erd-footnote {
+    font-size: 0.75rem;
+    color: #706e6b;
+    font-style: italic;
+    padding: 8px 4px 0;
+}

@@ -1,0 +1,120 @@
+<template>
+    <div class={question.canvasQuestionBlockClass}>
+        <div
+            class={questionHeaderClass}
+            data-elementtype="question"
+            data-id={question.Id}
+            onclick={handleElementClick}
+            draggable="true"
+            data-itemtype="question"
+            data-parentid={sectionId}
+            ondragstart={handleDragStart}
+            ondragend={handleDragEnd}
+        >
+            <span class="drag-handle-area">
+                <span class="drag-handle drag-handle-sm">&#8942;&#8942;</span>
+                {question.displayLabel}
+                <span class="type-badge">{question.typeBadge}</span>
+                <template if:true={question.C_Is_Required__c}>
+                    <span class="type-badge required-badge">Required</span>
+                </template>
+                <template if:true={question.isMapped}>
+                    <span class={question.mappingBadgeClass}>{question.mappingBadgeLabel}</span>
+                </template>
+                <template if:true={question.isDependent}>
+                    <span class="type-badge dep-badge">Conditional</span>
+                </template>
+                <template if:true={question.C_Is_Disabled__c}>
+                    <span class="type-badge disabled-badge">Disabled</span>
+                </template>
+            </span>
+            <template if:true={question.supportsResponses}>
+                <template if:false={suppressRepositoryChrome}>
+                    <lightning-button-icon
+                        icon-name="utility:add"
+                        alternative-text="Add Response"
+                        size="small"
+                        data-questionid={question.Id}
+                        onclick={handleQuickAddResponse}
+                    ></lightning-button-icon>
+                </template>
+            </template>
+        </div>
+
+        <template if:true={question.supportsResponses}>
+            <template if:true={question.hasResponses}>
+                <c-form-builder-drop-zone
+                    dropzone="question"
+                    accepts="response"
+                    parent-id={question.Id}
+                    position="0"
+                    is-dragging={isDragging}
+                    drag-item-type={dragItemType}
+                    drag-type={dragType}
+                    variant="line"
+                ></c-form-builder-drop-zone>
+
+                <template for:each={responsesForTemplate} for:item="response">
+                    <div key={response.Id}>
+                        <div
+                            class={response.rowClass}
+                            data-elementtype="response"
+                            data-id={response.Id}
+                            onclick={handleElementClick}
+                            draggable="true"
+                            data-itemtype="response"
+                            data-parentid={question.Id}
+                            ondragstart={handleResponseDragStart}
+                            ondragend={handleDragEnd}
+                        >
+                            <span class="drag-handle-area">
+                                <span class="drag-handle drag-handle-sm">&#8942;&#8942;</span>
+                                &#8226; {response.displayLabel}
+                                <template if:true={showScoring}>
+                                    <template if:true={response.pointsDisplay}>
+                                        <span class="points-badge">{response.pointsDisplay}</span>
+                                    </template>
+                                </template>
+                            </span>
+                        </div>
+                        <c-form-builder-drop-zone
+                            dropzone="question"
+                            accepts="response"
+                            parent-id={question.Id}
+                            position={response.dropPosition}
+                            is-dragging={isDragging}
+                            drag-item-type={dragItemType}
+                            drag-type={dragType}
+                            variant="line"
+                        ></c-form-builder-drop-zone>
+                    </div>
+                </template>
+            </template>
+            <template if:false={question.hasResponses}>
+                <c-form-builder-drop-zone
+                    dropzone="question"
+                    accepts="response"
+                    parent-id={question.Id}
+                    position="0"
+                    is-dragging={isDragging}
+                    drag-item-type={dragItemType}
+                    drag-type={dragType}
+                    variant="empty"
+                >
+                    <span class="slds-text-body_small slds-text-color_weak">Drag a response here</span>
+                </c-form-builder-drop-zone>
+            </template>
+        </template>
+
+        <c-form-builder-drop-zone
+            dropzone="section"
+            accepts="question,questionRepository"
+            parent-id={sectionId}
+            position={question.dropPosition}
+            is-dragging={isDragging}
+            drag-item-type={dragItemType}
+            drag-type={dragType}
+            variant="line"
+        ></c-form-builder-drop-zone>
+    </div>
+</template>

@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<CustomField xmlns="http://soap.sforce.com/2006/04/metadata">
+    <fullName>C_Related_Target__c</fullName>
+    <deleteConstraint>SetNull</deleteConstraint>
+    <externalId>false</externalId>
+    <description>For Related_Record resolution: references another Form Target whose resolved record is used as the starting point for relationship traversal.</description>
+    <inlineHelpText>Select the source Form Target to chain from. This target's record will be resolved by following the Related Field Path from the source target's resolved record.</inlineHelpText>
+    <label>Related Target</label>
+    <referenceTo>C_Form_Target__c</referenceTo>
+    <relationshipLabel>Dependent Targets</relationshipLabel>
+    <relationshipName>C_Dependent_Targets</relationshipName>
+    <required>false</required>
+    <trackHistory>false</trackHistory>
+    <trackTrending>false</trackTrending>
+    <type>Lookup</type>
+</CustomField>

@@ -1,0 +1,57 @@
+<template>
+    <section class="conversation-shell">
+        <div class="conversation-progress-row">
+            <div class="conversation-progress">
+                <div class="conversation-progress-fill" style={progressWidth}></div>
+            </div>
+        
+            <span class="counter">{questionCounter}</span>
+        </div>
+
+        <div class="conversation-header">
+            <div>
+                <template if:true={currentPageDescription}>
+                    <p class="description">{currentPageDescription}</p>
+                </template>
+            </div>
+        </div>
+
+        <template if:true={hasQuestions}>
+            <article class="question-stage">
+                <div class="question-meta">
+                    <span class="question-number">{activeNumber}</span>
+                    <span>{activeSectionName}</span>
+                </div>
+
+                <c-form-question
+                    question={activeQuestion}
+                    section-id={activeQuestion.sectionId}
+                    read-only={readOnly}
+                    feature-settings={featureSettings}
+                    onvaluechange={handleValueChange}
+                ></c-form-question>
+
+                <div class="conversation-actions">
+                    <lightning-button
+                        label="Previous"
+                        variant="neutral"
+                        onclick={handlePrevious}
+                        disabled={isFirstQuestion}
+                    ></lightning-button>
+
+                    <lightning-button
+                        label={nextLabel}
+                        variant="brand"
+                        onclick={handleNext}
+                    ></lightning-button>
+                </div>
+            </article>
+        </template>
+
+        <template if:false={hasQuestions}>
+            <div class="empty-state">
+                No questions available on this page.
+            </div>
+        </template>
+    </section>
+</template>

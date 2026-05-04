@@ -1,0 +1,94 @@
+<template>
+    <div class="tl-inline-container">
+        <div class="tl-header slds-grid slds-grid_vertical-align-center slds-grid_align-spread">
+            <h4 class="slds-text-title_caps">
+                <lightning-icon icon-name="utility:world" size="xx-small" class="slds-m-right_xx-small"></lightning-icon>
+                Translations
+            </h4>
+            <lightning-button-icon
+                icon-name={addButtonIcon}
+                alternative-text="Toggle add form"
+                variant="bare"
+                size="small"
+                onclick={handleToggleAdd}>
+            </lightning-button-icon>
+        </div>
+
+        <!-- Loading state -->
+        <template if:true={isLoadingTranslations}>
+            <div class="slds-m-vertical_small slds-text-align_center">
+                <lightning-spinner alternative-text="Loading translations" size="small"></lightning-spinner>
+            </div>
+        </template>
+
+        <!-- Existing translations -->
+        <template if:false={isLoadingTranslations}>
+            <template if:true={hasTranslations}>
+                <template for:each={enrichedTranslations} for:item="t">
+                    <div key={t.pillKey} class="tl-pill slds-grid slds-grid_vertical-align-center" data-id={t.id} onclick={handleEditPill}>
+                        <span class="tl-pill-lang">{t.displayLabel}</span>
+                        <span class="tl-pill-text slds-truncate" title={t.translatedText}>{t.preview}</span>
+                        <lightning-button-icon
+                            icon-name="utility:close"
+                            alternative-text="Remove"
+                            variant="bare"
+                            size="xx-small"
+                            data-id={t.id}
+                            onclick={handleDelete}
+                            class="tl-remove">
+                        </lightning-button-icon>
+                    </div>
+                </template>
+            </template>
+
+            <!-- Empty state -->
+            <template if:false={hasTranslations}>
+                <template if:false={showAddForm}>
+                    <p class="slds-text-body_small slds-text-color_weak slds-m-top_xx-small">No translations yet. Click + to add one.</p>
+                </template>
+            </template>
+        </template>
+
+        <!-- Add/Edit form -->
+        <template if:true={showAddForm}>
+            <div class="tl-add-form slds-m-top_small">
+                <template if:true={hasLanguageOptions}>
+                    <lightning-combobox
+                        label="Language"
+                        value={newTranslation.language}
+                        options={availableLanguageOptions}
+                        onchange={handleLanguageChange}
+                        placeholder="Select language..."
+                        class="slds-m-bottom_xx-small">
+                    </lightning-combobox>
+
+                    <template if:true={newTranslation.language}>
+                        <template for:each={formFields} for:item="f">
+                            <lightning-input
+                                key={f.field}
+                                label={f.label}
+                                value={f.value}
+                                data-field={f.field}
+                                onchange={handleFieldChange}
+                                class="slds-m-bottom_xx-small">
+                            </lightning-input>
+                        </template>
+
+                        <div class="slds-grid slds-gutters_xx-small slds-m-top_x-small">
+                            <div class="slds-col">
+                                <lightning-button label={saveButtonLabel} variant="brand" size="small" onclick={handleSave} disabled={isSaving}></lightning-button>
+                            </div>
+                            <div class="slds-col">
+                                <lightning-button label="Cancel" variant="neutral" size="small" onclick={handleCancel}></lightning-button>
+                            </div>
+                        </div>
+                    </template>
+                </template>
+
+                <template if:false={hasLanguageOptions}>
+                    <p class="slds-text-body_small slds-text-color_weak">No additional languages configured.</p>
+                </template>
+            </div>
+        </template>
+    </div>
+</template>

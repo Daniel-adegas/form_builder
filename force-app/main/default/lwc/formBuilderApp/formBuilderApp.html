@@ -1,0 +1,55 @@
+<template>
+    <!-- App Header -->
+    <div class="app-header">
+        <div class="app-header-content">
+            <div class="app-title-area">
+                <lightning-icon icon-name="standard:flow" size="large" class="slds-m-right_medium"></lightning-icon>
+                <div>
+                    <h1 class="app-title">Form Builder</h1>
+                    <p class="app-subtitle">Create, configure, and test dynamic forms</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Tab Bar -->
+        <div class="tab-bar" role="tablist">
+            <button type="button" role="tab" aria-selected={isDocumentationTab} class={docTabClass} data-tab="documentation" onclick={handleTabClick}>
+                <lightning-icon icon-name="standard:knowledge" size="xx-small" class="slds-m-right_xx-small"></lightning-icon>
+                Documentation
+            </button>
+            <button type="button" role="tab" aria-selected={isVisualTab} class={visTabClass} data-tab="visual" onclick={handleTabClick}>
+                <lightning-icon icon-name="custom:custom63" size="xx-small" class="slds-m-right_xx-small"></lightning-icon>
+                Builder (Visual)
+            </button>
+            <button type="button" role="tab" aria-selected={isRendererTab} class={rendTabClass} data-tab="renderer" onclick={handleTabClick}>
+                <lightning-icon icon-name="standard:survey" size="xx-small" class="slds-m-right_xx-small"></lightning-icon>
+                Form Renderer
+            </button>
+            <template if:true={showAssetRepositoryTab}>
+                <button type="button" role="tab" aria-selected={isRepositoryTab} class={repoTabClass} data-tab="repository" onclick={handleTabClick}>
+                    <lightning-icon icon-name="utility:collection" size="xx-small" class="slds-m-right_xx-small"></lightning-icon>
+                    Repository
+                </button>
+            </template>
+        </div>
+    </div>
+
+    <!-- Tab Content -->
+    <div class="tab-content">
+        <template if:true={isDocumentationTab}>
+            <c-form-documentation></c-form-documentation>
+        </template>
+
+        <template if:true={isVisualTab}>
+            <c-form-builder-visual></c-form-builder-visual>
+        </template>
+
+        <template if:true={isRendererTab}>
+            <c-form-renderer></c-form-renderer>
+        </template>
+
+        <template if:true={isRepositoryTab}>
+            <c-form-builder-asset-repo></c-form-builder-asset-repo>
+        </template>
+    </div>
+</template>

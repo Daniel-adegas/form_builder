@@ -1,0 +1,72 @@
+<template>
+    <div class="column-builder">
+        <p class="slds-text-title_caps slds-m-bottom_x-small">Table Columns</p>
+
+        <template if:true={hasColumns}>
+            <ul class="column-list">
+                <template for:each={columnList} for:item="col">
+                    <li key={col.id} class="column-row slds-grid slds-grid_vertical-center slds-gutters_xx-small slds-m-bottom_xx-small">
+                        <div class="slds-col slds-size_1-of-12 col-index">
+                            <span class="slds-badge slds-badge_lightest">{col.id}</span>
+                        </div>
+                        <div class="slds-col slds-grow">
+                            <lightning-input
+                                type="text"
+                                variant="label-hidden"
+                                label="Column name"
+                                value={col.name}
+                                placeholder="Column name"
+                                data-index={col.id}
+                                onchange={handleNameChange}>
+                            </lightning-input>
+                        </div>
+                        <div class="slds-col slds-shrink-none col-actions">
+                            <template if:false={col.isFirst}>
+                                <lightning-button-icon
+                                    icon-name="utility:arrowup"
+                                    alternative-text="Move up"
+                                    variant="bare"
+                                    size="small"
+                                    data-index={col.id}
+                                    onclick={handleMoveUp}>
+                                </lightning-button-icon>
+                            </template>
+                            <template if:false={col.isLast}>
+                                <lightning-button-icon
+                                    icon-name="utility:arrowdown"
+                                    alternative-text="Move down"
+                                    variant="bare"
+                                    size="small"
+                                    data-index={col.id}
+                                    onclick={handleMoveDown}>
+                                </lightning-button-icon>
+                            </template>
+                            <lightning-button-icon
+                                icon-name="utility:delete"
+                                alternative-text="Remove column"
+                                variant="bare"
+                                size="small"
+                                data-index={col.id}
+                                onclick={handleRemove}
+                                class="remove-btn">
+                            </lightning-button-icon>
+                        </div>
+                    </li>
+                </template>
+            </ul>
+        </template>
+
+        <template if:false={hasColumns}>
+            <p class="slds-text-body_small slds-text-color_weak slds-m-bottom_small">No columns defined yet.</p>
+        </template>
+
+        <lightning-button
+            label="Add Column"
+            icon-name="utility:add"
+            variant="neutral"
+            size="small"
+            onclick={handleAdd}
+            class="slds-m-top_xx-small">
+        </lightning-button>
+    </div>
+</template>

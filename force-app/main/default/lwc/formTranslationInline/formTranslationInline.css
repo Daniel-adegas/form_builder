@@ -1,0 +1,57 @@
+.tl-inline-container {
+    border-top: 1px solid #d8dde6;
+    padding-top: 0.75rem;
+    margin-top: 0.75rem;
+}
+
+.tl-header {
+    margin-bottom: 0.5rem;
+}
+
+.tl-header h4 {
+    display: flex;
+    align-items: center;
+    font-size: 0.7rem;
+    letter-spacing: 0.05em;
+    color: #514f4d;
+}
+
+.tl-pill {
+    cursor: pointer;
+    background: #f3f3f3;
+    border-radius: 4px;
+    padding: 0.35rem 0.5rem;
+    margin-bottom: 0.25rem;
+    font-size: 0.75rem;
+    transition: background 0.15s;
+}
+
+.tl-pill:hover {
+    background: #e8e8e8;
+}
+
+.tl-pill-lang {
+    font-weight: 600;
+    color: #0176d3;
+    white-space: nowrap;
+    margin-right: 0.5rem;
+    flex-shrink: 0;
+}
+
+.tl-pill-text {
+    color: #514f4d;
+    flex: 1;
+    min-width: 0;
+}
+
+.tl-remove {
+    flex-shrink: 0;
+    margin-left: 0.25rem;
+}
+
+.tl-add-form {
+    background: #fafaf9;
+    border-radius: 4px;
+    padding: 0.5rem;
+    border: 1px solid #d8dde6;
+}

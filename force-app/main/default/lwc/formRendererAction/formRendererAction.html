@@ -1,0 +1,23 @@
+<template>
+    <div class="renderer-container">
+        <template if:true={recordId}>
+            <c-form-renderer
+                record-id={recordId}
+                read-only="true"
+                hide-header="true">
+            </c-form-renderer>
+        </template>
+        <template if:false={recordId}>
+            <div class="slds-align_absolute-center slds-p-around_large">
+                <lightning-spinner alternative-text="Loading submission" size="small"></lightning-spinner>
+            </div>
+        </template>
+    </div>
+    <footer class="slds-modal__footer">
+        <lightning-button
+            variant="neutral"
+            label="Close"
+            onclick={handleClose}>
+        </lightning-button>
+    </footer>
+</template>

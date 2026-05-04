@@ -1,0 +1,123 @@
+<template>
+    <div class="dep-inline-container">
+        <div class="dep-header slds-grid slds-grid_vertical-center slds-grid_align-spread">
+            <h4 class="slds-text-title_caps">
+                <lightning-icon icon-name="utility:flow" size="xx-small" class="slds-m-right_xx-small"></lightning-icon>
+                Dependencies
+            </h4>
+            <lightning-button-icon
+                icon-name={addButtonIcon}
+                alternative-text="Toggle add form"
+                variant="bare"
+                size="small"
+                onclick={handleToggleAdd}>
+            </lightning-button-icon>
+        </div>
+
+        <!-- Incoming dependencies (targeting this element) -->
+        <template if:true={hasIncoming}>
+            <p class="slds-text-body_small dep-direction-label">Targeting this {capitalizedType}</p>
+            <template for:each={enrichedIncoming} for:item="dep">
+                <div key={dep.Id} class="dep-pill slds-grid slds-grid_vertical-center" data-id={dep.Id} onclick={handleEditDep}>
+                    <span class={dep.actionClass}>{dep.C_Action__c}</span>
+                    <span class="dep-detail slds-truncate" title={dep.controllingLabel}>when {dep.controllingLabel}</span>
+                    <lightning-button-icon
+                        icon-name="utility:close"
+                        alternative-text="Remove"
+                        variant="bare"
+                        size="xx-small"
+                        data-id={dep.Id}
+                        onclick={handleDelete}
+                        class="dep-remove">
+                    </lightning-button-icon>
+                </div>
+            </template>
+        </template>
+
+        <!-- Outgoing dependencies (from this element's responses) -->
+        <template if:true={hasOutgoing}>
+            <p class="slds-text-body_small dep-direction-label">
+                <template if:true={isResponseMode}>Controls</template>
+                <template if:false={isResponseMode}>From this {capitalizedType}'s responses</template>
+            </p>
+            <template for:each={enrichedOutgoing} for:item="dep">
+                <div key={dep.Id} class="dep-pill dep-pill-outgoing slds-grid slds-grid_vertical-center" data-id={dep.Id} onclick={handleEditDep}>
+                    <span class={dep.actionClass}>{dep.C_Action__c}</span>
+                    <span class="dep-detail slds-truncate" title={dep.targetLabel}>{dep.targetLabel}</span>
+                    <span class="dep-via slds-truncate" title={dep.controllingLabel}>via {dep.controllingLabel}</span>
+                    <lightning-button-icon
+                        icon-name="utility:close"
+                        alternative-text="Remove"
+                        variant="bare"
+                        size="xx-small"
+                        data-id={dep.Id}
+                        onclick={handleDelete}
+                        class="dep-remove">
+                    </lightning-button-icon>
+                </div>
+            </template>
+        </template>
+
+        <!-- Empty state -->
+        <template if:false={hasDeps}>
+            <template if:false={showAddForm}>
+                <p class="slds-text-body_small slds-text-color_weak slds-m-top_xx-small">No dependencies yet. Click + to add one.</p>
+            </template>
+        </template>
+
+        <!-- Add dependency form -->
+        <template if:true={showAddForm}>
+            <div class="dep-add-form slds-m-top_small">
+                <template if:false={isResponseMode}>
+                    <lightning-combobox
+                        label="Controlling Response"
+                        value={newDep.C_Controlling_Response__c}
+                        options={contextResponseOptions}
+                        data-field="C_Controlling_Response__c"
+                        onchange={handleFieldChange}
+                        placeholder="Select response..."
+                        class="slds-m-bottom_xx-small">
+                    </lightning-combobox>
+                </template>
+                <div class="slds-grid slds-gutters_xx-small slds-m-bottom_xx-small">
+                    <div class="slds-col slds-size_1-of-2">
+                        <lightning-combobox
+                            label="Action"
+                            value={newDep.C_Action__c}
+                            options={actionOptions}
+                            data-field="C_Action__c"
+                            onchange={handleFieldChange}>
+                        </lightning-combobox>
+                    </div>
+                    <div class="slds-col slds-size_1-of-2">
+                        <lightning-combobox
+                            label="Target Type"
+                            value={newDep.C_Target_Type__c}
+                            options={targetTypeOptions}
+                            data-field="C_Target_Type__c"
+                            onchange={handleFieldChange}
+                            placeholder="Select...">
+                        </lightning-combobox>
+                    </div>
+                </div>
+                <lightning-combobox
+                    label="Target"
+                    value={selectedTargetValue}
+                    options={filteredTargets}
+                    onchange={handleTargetChange}
+                    placeholder="Select target..."
+                    disabled={isTargetDisabled}
+                    class="slds-m-bottom_small">
+                </lightning-combobox>
+                <div class="slds-grid slds-gutters_xx-small">
+                    <div class="slds-col">
+                        <lightning-button label={saveButtonLabel} variant="brand" size="small" onclick={handleSave}></lightning-button>
+                    </div>
+                    <div class="slds-col">
+                        <lightning-button label="Cancel" variant="neutral" size="small" onclick={handleCancel}></lightning-button>
+                    </div>
+                </div>
+            </div>
+        </template>
+    </div>
+</template>

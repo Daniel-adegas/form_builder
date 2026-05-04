@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<CustomField xmlns="http://soap.sforce.com/2006/04/metadata">
+    <fullName>C_Logic_Operator__c</fullName>
+    <externalId>false</externalId>
+    <label>Logic Operator</label>
+    <required>false</required>
+    <trackTrending>false</trackTrending>
+    <type>Picklist</type>
+    <valueSet>
+        <restricted>true</restricted>
+        <valueSetDefinition>
+            <sorted>false</sorted>
+            <value>
+                <fullName>OR</fullName>
+                <default>true</default>
+                <label>OR</label>
+            </value>
+            <value>
+                <fullName>AND</fullName>
+                <default>false</default>
+                <label>AND</label>
+            </value>
+        </valueSetDefinition>
+    </valueSet>
+</CustomField>

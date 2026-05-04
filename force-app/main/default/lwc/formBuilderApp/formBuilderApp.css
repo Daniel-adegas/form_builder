@@ -1,0 +1,98 @@
+:host {
+    display: block;
+}
+
+.app-header {
+    background: linear-gradient(135deg, #032d60 0%, #0070d2 100%);
+    padding: 24px 32px 0;
+    border-radius: 8px 8px 0 0;
+    margin-bottom: 0;
+}
+
+.app-header-content {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding-bottom: 20px;
+}
+
+.app-title-area {
+    display: flex;
+    align-items: center;
+}
+
+.app-title {
+    font-size: 28px;
+    font-weight: 700;
+    color: white;
+    letter-spacing: -0.5px;
+    margin: 0;
+}
+
+.app-subtitle {
+    font-size: 14px;
+    color: rgba(255, 255, 255, 0.75);
+    margin: 2px 0 0 0;
+}
+
+.tab-bar {
+    display: flex;
+    gap: 4px;
+    padding: 0;
+}
+
+.tab-button {
+    background: rgba(255, 255, 255, 0.1);
+    border: none;
+    color: rgba(255, 255, 255, 0.8);
+    padding: 12px 20px;
+    font-size: 13px;
+    font-weight: 500;
+    cursor: pointer;
+    border-radius: 8px 8px 0 0;
+    transition: all 0.15s ease;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+}
+
+.tab-button:hover {
+    background: rgba(255, 255, 255, 0.2);
+    color: white;
+}
+
+.tab-button.active {
+    background: white;
+    color: #032d60;
+    font-weight: 600;
+}
+
+.tab-content {
+    background: #f4f6f9;
+    min-height: calc(100vh - 180px);
+    padding: 16px;
+    border-radius: 0 0 8px 8px;
+}
+
+.section-container {
+    border: 1px solid #d8dde6;
+    border-radius: 8px;
+    background: white;
+    overflow: hidden;
+}
+
+.section-header {
+    background: #f4f6f9;
+    border-bottom: 1px solid #d8dde6;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.page-label {
+    display: block;
+    font-size: 11px;
+    text-align: center;
+    margin-top: 4px;
+    color: #706e6b;
+}

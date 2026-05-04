@@ -1,0 +1,349 @@
+<template>
+    <template if:true={isLoading}>
+        <lightning-spinner alternative-text="Loading" size="small"></lightning-spinner>
+    </template>
+
+    <!-- Header -->
+    <div class="header-bar">
+        <h3>Field Mapping Targets</h3>
+        <lightning-button
+            label="Add Target"
+            variant="brand"
+            icon-name="utility:add"
+            size="small"
+            onclick={handleAddTarget}
+        ></lightning-button>
+    </div>
+
+    <!-- Add Target Form -->
+    <template if:true={isAddingTarget}>
+        <div class="add-form">
+            <div class="add-form-title">{targetFormTitle}</div>
+
+            <div class="form-row">
+                <lightning-combobox
+                    label="Target Object"
+                    value={newTarget.C_Target_Object__c}
+                    options={objectOptions}
+                    placeholder="Select an object..."
+                    data-field="C_Target_Object__c"
+                    onchange={handleNewTargetObjectChange}
+                    required
+                ></lightning-combobox>
+            </div>
+
+            <div class="form-row">
+                <lightning-combobox
+                    label="Resolution Type"
+                    value={newTarget.C_Resolution_Type__c}
+                    options={resolutionOptions}
+                    data-field="C_Resolution_Type__c"
+                    onchange={handleNewTargetFieldChange}
+                    required
+                ></lightning-combobox>
+            </div>
+
+            <div class="form-row">
+                <lightning-combobox
+                    label="Operation"
+                    value={newTarget.C_Record_Operation__c}
+                    options={operationOptions}
+                    data-field="C_Record_Operation__c"
+                    onchange={handleNewTargetFieldChange}
+                ></lightning-combobox>
+            </div>
+
+            <div class="form-row">
+                <lightning-combobox
+                    label="Direction"
+                    value={newTarget.C_Direction__c}
+                    options={directionOptions}
+                    data-field="C_Direction__c"
+                    onchange={handleNewTargetFieldChange}
+                ></lightning-combobox>
+            </div>
+
+            <!-- Resolution-specific fields -->
+            <template if:true={showContextKey}>
+                <div class="form-row">
+                    <lightning-input
+                        label="Context Key"
+                        value={newTarget.C_Context_Key__c}
+                        data-field="C_Context_Key__c"
+                        onchange={handleNewTargetFieldChange}
+                        field-level-help="Unique key that callers pass via recordContext JSON. E.g. 'primaryAccount', 'vendorContact'. Leave blank to match the single contextRecordId."
+                        placeholder="e.g. primaryAccount"
+                    ></lightning-input>
+                </div>
+            </template>
+
+            <template if:true={showUserLookupField}>
+                <div class="form-row">
+                    <lightning-combobox
+                        label="User Lookup Field"
+                        value={newTarget.C_User_Lookup_Field__c}
+                        options={userLookupOptions}
+                        data-field="C_User_Lookup_Field__c"
+                        onchange={handleNewTargetFieldChange}
+                        field-level-help="Select which User field resolves to the target record. The system follows this path from the current user."
+                        placeholder="Select user field..."
+                        required
+                    ></lightning-combobox>
+                </div>
+            </template>
+
+            <template if:true={showRelatedTarget}>
+                <div class="form-row">
+                    <lightning-combobox
+                        label="Source Target"
+                        value={newTarget.C_Related_Target__c}
+                        options={relatedTargetOptions}
+                        data-field="C_Related_Target__c"
+                        onchange={handleNewTargetFieldChange}
+                        field-level-help="Select the target whose resolved record provides the starting point for relationship traversal."
+                        placeholder="Select source target..."
+                        required
+                    ></lightning-combobox>
+                </div>
+                <div class="form-row">
+                    <lightning-input
+                        label="Related Field Path"
+                        value={newTarget.C_Related_Field_Path__c}
+                        data-field="C_Related_Field_Path__c"
+                        onchange={handleNewTargetFieldChange}
+                        field-level-help="Field on the source target's object that points to this target's record. E.g. 'Primary_Contact__c' on Account."
+                        placeholder="e.g. Primary_Contact__c"
+                        required
+                    ></lightning-input>
+                </div>
+            </template>
+
+            <template if:true={showExternalIdField}>
+                <div class="form-row">
+                    <lightning-input
+                        label="External ID Field"
+                        value={newTarget.C_External_Id_Field__c}
+                        data-field="C_External_Id_Field__c"
+                        onchange={handleNewTargetFieldChange}
+                        field-level-help="API name of the external ID field for Upsert operations."
+                        placeholder="e.g. External_Id__c"
+                    ></lightning-input>
+                </div>
+            </template>
+
+            <div class="form-row">
+                <lightning-textarea
+                    label="Description"
+                    value={newTarget.C_Description__c}
+                    data-field="C_Description__c"
+                    onchange={handleNewTargetFieldChange}
+                ></lightning-textarea>
+            </div>
+
+            <div class="form-row form-row-inline">
+                <lightning-input
+                    type="number"
+                    label="Order"
+                    value={newTarget.C_Order__c}
+                    data-field="C_Order__c"
+                    onchange={handleNewTargetFieldChange}
+                    min="1"
+                    step="1"
+                ></lightning-input>
+                <lightning-input
+                    type="checkbox"
+                    label="Active"
+                    checked={newTarget.C_Is_Active__c}
+                    data-field="C_Is_Active__c"
+                    onchange={handleNewTargetFieldChange}
+                ></lightning-input>
+            </div>
+
+            <div class="form-actions">
+                <lightning-button label="Cancel" onclick={handleCancelAddTarget}></lightning-button>
+                <lightning-button label="Save Target" variant="brand" onclick={handleSaveNewTarget}></lightning-button>
+            </div>
+        </div>
+    </template>
+
+    <!-- Target Cards -->
+    <template if:true={hasTargets}>
+        <template for:each={enrichedTargets} for:item="target">
+            <div key={target.Id} class="target-card">
+                <!-- Target Header -->
+                <div class="target-header" data-id={target.Id} onclick={toggleTarget}>
+                    <div class="target-header-left">
+                        <lightning-icon icon-name={target.expandIcon} size="x-small"></lightning-icon>
+                        <span class="object-name">{target.C_Target_Object__c}</span>
+                        <span class={target.dirBadgeClass}>{target.directionArrow} {target.directionLabel}</span>
+                        <span class="badge badge-resolution">{target.resolutionLabel}</span>
+                        <span class="badge badge-operation">{target.operationLabel}</span>
+                        <span class={target.activeBadgeClass}>{target.activeBadgeLabel}</span>
+                    </div>
+                    <div class="target-header-right">
+                        <lightning-button-icon
+                            icon-name="utility:edit"
+                            alternative-text="Edit target"
+                            variant="bare"
+                            size="small"
+                            data-id={target.Id}
+                            onclick={handleEditTarget}
+                        ></lightning-button-icon>
+                        <lightning-button-icon
+                            icon-name="utility:delete"
+                            alternative-text="Delete target"
+                            variant="bare"
+                            size="small"
+                            data-id={target.Id}
+                            onclick={handleDeleteTarget}
+                        ></lightning-button-icon>
+                    </div>
+                </div>
+
+                <!-- Target Body (expanded) -->
+                <template if:true={target.isExpanded}>
+                    <div class="target-body">
+                        <!-- Target details -->
+                        <template if:true={target.C_Description__c}>
+                            <div class="target-detail-row">
+                                <span><strong>Description:</strong> {target.C_Description__c}</span>
+                            </div>
+                        </template>
+
+                        <div class="section-divider"></div>
+
+                        <!-- Existing Mappings -->
+                        <template if:true={target.hasMappings}>
+                            <table class="mapping-table">
+                                <thead>
+                                    <tr>
+                                        <th>Question</th>
+                                        <th>Target Field</th>
+                                        <th>Type</th>
+                                        <th style="width: 70px;"></th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <template for:each={target.enrichedMappings} for:item="mapping">
+                                        <tr key={mapping.Id} class="mapping-row">
+                                            <td>{mapping.questionLabel}</td>
+                                            <td>{mapping.C_Target_Field__c}</td>
+                                            <td><span class="badge badge-type">{mapping.typeBadgeLabel}</span></td>
+                                            <td>
+                                                <div class="mapping-actions">
+                                                    <lightning-button-icon
+                                                        icon-name="utility:edit"
+                                                        alternative-text="Edit mapping"
+                                                        variant="bare"
+                                                        size="small"
+                                                        data-id={mapping.Id}
+                                                        data-targetid={target.Id}
+                                                        onclick={handleEditMapping}
+                                                    ></lightning-button-icon>
+                                                    <lightning-button-icon
+                                                        icon-name="utility:delete"
+                                                        alternative-text="Delete mapping"
+                                                        variant="bare"
+                                                        size="small"
+                                                        data-id={mapping.Id}
+                                                        onclick={handleDeleteMapping}
+                                                    ></lightning-button-icon>
+                                                </div>
+                                            </td>
+                                        </tr>
+                                    </template>
+                                </tbody>
+                            </table>
+                        </template>
+
+                        <template if:false={target.hasMappings}>
+                            <div class="empty-state">
+                                <p>No field mappings yet.</p>
+                                <p>Add a mapping to connect form questions to object fields.</p>
+                            </div>
+                        </template>
+
+                        <!-- Add Mapping Button -->
+                        <template if:false={target.isAddingMappingHere}>
+                            <lightning-button
+                                label="Add Mapping"
+                                variant="neutral"
+                                icon-name="utility:add"
+                                size="small"
+                                data-id={target.Id}
+                                onclick={handleAddMapping}
+                            ></lightning-button>
+                        </template>
+
+                        <!-- Add Mapping Form -->
+                        <template if:true={target.isAddingMappingHere}>
+                            <div class="add-form" style="margin-top: 12px;">
+                                <div class="add-form-title">{mappingFormTitle}</div>
+
+                                <div class="form-row">
+                                    <lightning-combobox
+                                        label="Question"
+                                        value={newMapping.C_Question__c}
+                                        options={questions}
+                                        placeholder="Select a question..."
+                                        data-field="C_Question__c"
+                                        onchange={handleMappingFieldChange}
+                                    ></lightning-combobox>
+                                </div>
+
+                                <div class="form-row">
+                                    <lightning-combobox
+                                        label="Target Field"
+                                        value={newMapping.C_Target_Field__c}
+                                        options={target.fieldOpts}
+                                        placeholder="Select a field..."
+                                        data-field="C_Target_Field__c"
+                                        onchange={handleMappingFieldChange}
+                                        required
+                                    ></lightning-combobox>
+                                </div>
+
+                                <div class="form-row">
+                                    <lightning-combobox
+                                        label="Mapping Type"
+                                        value={newMapping.C_Mapping_Type__c}
+                                        options={mappingTypeOptions}
+                                        data-field="C_Mapping_Type__c"
+                                        onchange={handleMappingFieldChange}
+                                    ></lightning-combobox>
+                                </div>
+
+                                <template if:true={showStaticValueInput}>
+                                    <div class="form-row">
+                                        <lightning-input
+                                            label="Static Value"
+                                            value={newMapping.C_Static_Value__c}
+                                            data-field="C_Static_Value__c"
+                                            onchange={handleMappingFieldChange}
+                                            required
+                                        ></lightning-input>
+                                    </div>
+                                </template>
+
+                                <div class="form-actions">
+                                    <lightning-button label="Cancel" onclick={handleCancelAddMapping}></lightning-button>
+                                    <lightning-button label="Save Mapping" variant="brand" onclick={handleSaveMappingAndReload}></lightning-button>
+                                </div>
+                            </div>
+                        </template>
+                    </div>
+                </template>
+            </div>
+        </template>
+    </template>
+
+    <!-- Empty state -->
+    <template if:false={hasTargets}>
+        <template if:false={isAddingTarget}>
+            <div class="empty-state">
+                <p><strong>No targets configured</strong></p>
+                <p>Add a target to map form questions to Salesforce object fields.</p>
+            </div>
+        </template>
+    </template>
+</template>

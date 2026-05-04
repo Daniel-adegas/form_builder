@@ -1,0 +1,35 @@
+.column-builder {
+    padding: 0.5rem 0;
+}
+
+.column-list {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+}
+
+.column-row {
+    background: #f4f6f9;
+    border-radius: 6px;
+    padding: 0.25rem 0.5rem;
+    transition: background 0.15s ease;
+}
+
+.column-row:hover {
+    background: #e8ecf1;
+}
+
+.col-index {
+    text-align: center;
+    min-width: 2rem;
+}
+
+.col-actions {
+    display: flex;
+    gap: 0.125rem;
+    align-items: center;
+}
+
+.remove-btn {
+    --slds-c-button-icon-color-foreground: #c23934;
+}

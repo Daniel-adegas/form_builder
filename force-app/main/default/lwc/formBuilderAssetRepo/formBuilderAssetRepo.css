@@ -1,0 +1,29 @@
+.repo-edit-shell {
+    min-height: calc(100vh - 220px);
+}
+
+.asset-tab-bar {
+    display: flex;
+    gap: 8px;
+}
+
+.asset-tab-btn {
+    background: #f3f3f3;
+    border: 1px solid #dddbda;
+    border-radius: 4px;
+    padding: 8px 16px;
+    font-size: 13px;
+    font-weight: 500;
+    cursor: pointer;
+    color: #3e3e3c;
+}
+
+.asset-tab-btn:hover {
+    background: #ecebea;
+}
+
+.asset-tab-btn.is-active {
+    background: #0176d3;
+    border-color: #0176d3;
+    color: #ffffff;
+}

@@ -1,0 +1,69 @@
+.drag-handle-area {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    flex: 1;
+    min-width: 0;
+}
+.drag-handle {
+    cursor: grab;
+    color: #04844b80;
+    font-size: 14px;
+    letter-spacing: 0;
+    margin-right: 6px;
+    flex-shrink: 0;
+    user-select: none;
+}
+.canvas-section-header .drag-handle {
+    color: #04844b80;
+}
+
+.canvas-section {
+    border: 1px solid #04844b;
+    border-radius: 6px;
+    margin: 8px 12px;
+    overflow: hidden;
+    transition: box-shadow 0.2s, opacity 0.2s;
+    background-color: #fefefe;
+}
+.canvas-section.is-selected {
+    box-shadow: 0 0 0 3px rgba(4, 132, 75, 0.3);
+}
+.canvas-section-header {
+    background: #e8f5e9;
+    padding: 8px 12px;
+    font-weight: 500;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    cursor: grab;
+    border-bottom: 1px solid #04844b;
+    user-select: none;
+}
+.canvas-section-header:active {
+    cursor: grabbing;
+}
+
+.collapse-toggle-section {
+    flex-shrink: 0;
+    margin-right: 2px;
+}
+
+.is-dragging-source {
+    opacity: 0.35;
+}
+
+.type-badge {
+    display: inline-block;
+    padding: 1px 6px;
+    border-radius: 3px;
+    font-size: 11px;
+    font-weight: 500;
+    background: #eee;
+    color: #444;
+    margin-left: 6px;
+}
+.dep-badge {
+    background: #1565c0;
+    color: white;
+}

@@ -1,0 +1,49 @@
+.table-container {
+    padding: 0.5rem 0;
+    overflow-x: auto;
+}
+
+.slds-table {
+    min-width: 100%;
+}
+
+.row-number {
+    width: 40px;
+    text-align: center;
+    background-color: #f3f3f3;
+}
+
+.actions-col {
+    width: 60px;
+    text-align: center;
+}
+
+.delete-btn {
+    color: #ba0517;
+}
+
+.delete-btn:hover {
+    color: #8e030f;
+}
+
+th {
+    background-color: #f3f3f3;
+    font-weight: 600;
+}
+
+td lightning-input {
+    --slds-c-input-spacing-horizontal-start: 0.5rem;
+    --slds-c-input-spacing-horizontal-end: 0.5rem;
+}
+
+/* Make inputs fill the cell */
+td lightning-input {
+    width: 100%;
+}
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+    .table-container {
+        font-size: 0.875rem;
+    }
+}

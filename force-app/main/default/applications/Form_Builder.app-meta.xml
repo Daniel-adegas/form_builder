@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<CustomApplication xmlns="http://soap.sforce.com/2006/04/metadata">
+    <brand>
+        <headerColor>#032D60</headerColor>
+        <shouldOverrideOrgTheme>false</shouldOverrideOrgTheme>
+    </brand>
+    <description>Unified Form Builder application - Create, configure, test, and document dynamic forms</description>
+    <formFactors>Large</formFactors>
+    <isNavAutoTempTabsDisabled>false</isNavAutoTempTabsDisabled>
+    <isNavPersonalizationDisabled>false</isNavPersonalizationDisabled>
+    <isNavTabPersistenceDisabled>false</isNavTabPersistenceDisabled>
+    <isOmniPinnedViewEnabled>false</isOmniPinnedViewEnabled>
+    <label>Form Builder</label>
+    <navType>Standard</navType>
+    <tabs>Form_Builder_Home</tabs>
+    <tabs>C_Form__c</tabs>
+    <tabs>C_Page__c</tabs>
+    <tabs>C_Section__c</tabs>
+    <tabs>C_Question__c</tabs>
+    <tabs>C_Response__c</tabs>
+    <tabs>C_Dependency__c</tabs>
+    <tabs>C_Form_Submission__c</tabs>
+    <tabs>C_Section_Response__c</tabs>
+    <tabs>C_Question_Response__c</tabs>
+    <tabs>C_Field_Mapping__c</tabs>
+    <tabs>C_Translation__c</tabs>
+    <uiType>Lightning</uiType>
+</CustomApplication>

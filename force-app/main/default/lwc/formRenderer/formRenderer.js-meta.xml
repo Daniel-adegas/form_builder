@@ -1,0 +1,39 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<LightningComponentBundle xmlns="http://soap.sforce.com/2006/04/metadata">
+    <apiVersion>65.0</apiVersion>
+    <isExposed>true</isExposed>
+    <masterLabel>Form Renderer</masterLabel>
+    <description>Universal Form Renderer — works in Experience Cloud, Lightning, Flows, and Record Pages</description>
+    <targets>
+        <target>lightning__AppPage</target>
+        <target>lightning__Tab</target>
+        <target>lightning__RecordPage</target>
+        <target>lightning__FlowScreen</target>
+        <target>lightningCommunity__Page</target>
+        <target>lightningCommunity__Default</target>
+    </targets>
+    <targetConfigs>
+        <targetConfig targets="lightningCommunity__Default,lightning__AppPage">
+            <property name="formId" type="String" label="Form ID" description="Salesforce ID of the C_Form__c record to display" />
+            <property name="language" type="String" label="Language" description="ISO language code (e.g. en, pt). Defaults to form's default language." />
+            <property name="hideHeader" type="Boolean" label="Hide Header" default="false" description="When true, hides the top navigation header bar" />
+            <property name="readOnly" type="Boolean" label="Read Only" default="false" description="When true, renders the form in read-only mode (no editing/submit)" />
+            <property name="contextRecordId" type="String" label="Context Record ID" description="Single record ID for simple field mapping resolution (backward compatible)" />
+            <property name="recordContext" type="String" label="Record Context (JSON)" description="JSON map of context keys to record IDs for multi-target resolution. E.g. {&quot;account&quot;:&quot;001XX&quot;,&quot;contact&quot;:&quot;003XX&quot;}" />
+        </targetConfig>
+        <targetConfig targets="lightning__RecordPage">
+            <objects>
+                <object>C_Form_Submission__c</object>
+            </objects>
+            <property name="readOnly" type="Boolean" label="Read Only" default="true" description="When true, renders the submitted form in read-only mode" />
+        </targetConfig>
+        <targetConfig targets="lightning__FlowScreen">
+            <property name="formId" type="String" label="Form ID" role="inputOnly" description="Salesforce ID of the C_Form__c record" />
+            <property name="language" type="String" label="Language" role="inputOnly" description="ISO language code" />
+            <property name="hideHeader" type="Boolean" label="Hide Header" role="inputOnly" default="false" />
+            <property name="readOnly" type="Boolean" label="Read Only" role="inputOnly" default="false" />
+            <property name="contextRecordId" type="String" label="Context Record ID" role="inputOnly" description="Single record ID (backward compatible)" />
+            <property name="recordContext" type="String" label="Record Context (JSON)" role="inputOnly" description="JSON map of keys to record IDs for multi-target resolution" />
+        </targetConfig>
+    </targetConfigs>
+</LightningComponentBundle>

@@ -1,0 +1,14 @@
+<template>
+    <template if:true={isLine}>
+        <div class={lineClass} ondragover={handleDragOver} ondragleave={handleDragLeave} ondrop={handleDrop}>
+            <template if:true={showInnerLabel}>
+                <span class="drop-zone-label">{dragLabel}</span>
+            </template>
+        </div>
+    </template>
+    <template if:true={isEmpty}>
+        <div class={emptyClass} ondragover={handleDragOver} ondragleave={handleDragLeave} ondrop={handleDrop}>
+            <slot></slot>
+        </div>
+    </template>
+</template>

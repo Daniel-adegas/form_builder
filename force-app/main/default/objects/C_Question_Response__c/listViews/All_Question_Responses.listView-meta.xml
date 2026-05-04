@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ListView xmlns="http://soap.sforce.com/2006/04/metadata">
+    <fullName>All_Question_Responses</fullName>
+    <columns>NAME</columns>
+    <columns>C_Section_Response__c</columns>
+    <columns>C_Question_Text__c</columns>
+    <columns>C_Response_Text__c</columns>
+    <columns>C_Response_Points__c</columns>
+    <filterScope>Everything</filterScope>
+    <label>All Question Responses</label>
+</ListView>

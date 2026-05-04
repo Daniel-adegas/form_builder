@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<CustomField xmlns="http://soap.sforce.com/2006/04/metadata">
+    <fullName>C_Record_Context_JSON__c</fullName>
+    <externalId>false</externalId>
+    <description>Stores the record context map (JSON) passed when the form was launched. Used by outbound field mappings at submit time to resolve the same target records. Format: {"key":"recordId",...}</description>
+    <label>Record Context JSON</label>
+    <length>32768</length>
+    <trackHistory>false</trackHistory>
+    <trackTrending>false</trackTrending>
+    <type>LongTextArea</type>
+    <visibleLines>3</visibleLines>
+</CustomField>
