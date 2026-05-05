@@ -181,6 +181,14 @@
                             class="slds-m-left_x-small"
                         ></lightning-button>
                     </template>
+                    <template if:true={showConfigInToolbar}>
+                        <lightning-button
+                            label="Config"
+                            icon-name="utility:settings"
+                            variant="neutral"
+                            onclick={handleOpenConfigModal}>
+                        </lightning-button>
+                    </template>
                 </div>
 
                 <!-- Dependency Builder Panel -->
@@ -1045,6 +1053,44 @@
                     <footer class="slds-modal__footer">
                         <lightning-button label="Cancel" onclick={handleCancelPromoteConfirm}></lightning-button>
                         <lightning-button label="Confirm" variant="brand" class="slds-m-left_x-small" onclick={handleConfirmPromote}></lightning-button>
+                    </footer>
+                </div>
+            </section>
+            <div class="slds-backdrop slds-backdrop_open"></div>
+        </template>
+
+        <!-- Config Modal -->
+        <template if:true={showConfigModal}>
+            <section role="dialog" tabindex="-1" class="slds-modal slds-fade-in-open">
+                <div class="slds-modal__container">
+                    <header class="slds-modal__header">
+                        <button
+                            class="slds-button slds-button_icon slds-modal__close slds-button_icon-inverse"
+                            title="Close"
+                            onclick={handleCloseConfigModal}>
+                            <lightning-icon icon-name="utility:close" size="small" variant="inverse"></lightning-icon>
+                        </button>
+                        <h2 class="slds-text-heading_medium">Form Configuration</h2>
+                    </header>
+
+                    <div class="slds-modal__content slds-p-around_medium">
+                        <lightning-combobox
+                            label="Layout Mode"
+                            value={formLayoutMode}
+                            options={layoutModeOptions}
+                            onchange={handleConfigLayoutModeChange}
+                            class="slds-m-bottom_small">
+                        </lightning-combobox>
+                    </div>
+
+                    <footer class="slds-modal__footer">
+                        <lightning-button label="Cancel" onclick={handleCloseConfigModal}></lightning-button>
+                        <lightning-button
+                            label="Save"
+                            variant="brand"
+                            class="slds-m-left_x-small"
+                            onclick={handleSaveConfig}>
+                        </lightning-button>
                     </footer>
                 </div>
             </section>

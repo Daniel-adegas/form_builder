@@ -18,7 +18,7 @@ public with sharing class FormBuilderService {
     public static List<C_Form__c> getForms() {
         try {
             return [SELECT Id, Name, C_Description__c, C_Status__c, C_Version__c, C_Default_Language__c,
-                           CreatedDate, LastModifiedDate
+                           C_Layout_Mode__c, CreatedDate, LastModifiedDate
                     FROM C_Form__c
                     WHERE C_Hide_From_Form_Builder__c != TRUE
                     ORDER BY LastModifiedDate DESC LIMIT 200];
@@ -426,7 +426,7 @@ public with sharing class FormBuilderService {
         try {
             Map<String, Object> result = new Map<String, Object>();
 
-            C_Form__c form = [SELECT Id, Name, C_Description__c, C_Status__c, C_Version__c, C_Default_Language__c
+            C_Form__c form = [SELECT Id, Name, C_Description__c, C_Status__c, C_Version__c, C_Default_Language__c, C_Layout_Mode__c
                               FROM C_Form__c WHERE Id = :formId LIMIT 1];
             result.put('form', form);
 
