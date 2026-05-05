@@ -39,8 +39,7 @@ private class FormBuilderServiceTest {
             C_Description__c = 'Brand new form',
             C_Status__c = 'Draft',
             C_Version__c = 1,
-            C_Default_Language__c = 'fr',
-            C_Layout_Mode__c = 'classic'
+            C_Default_Language__c = 'fr'
         );
 
         Test.startTest();

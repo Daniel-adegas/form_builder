@@ -119,8 +119,6 @@ export default class FormBuilderVisual extends LightningElement {
         characterCountdown: false
     };
     @track showCloneModal = false;
-    @track showConfigModal = false;
-    @track configLayoutMode = 'Classic';
     @track cloneFormName = '';
     @track fieldMappingTargets = [];
     @track questionMappingMap = {};
@@ -137,7 +135,6 @@ export default class FormBuilderVisual extends LightningElement {
     @track repositorySearching = false;
     @track showPromoteConfirm = false;
     promoteConfirmKind = '';
-    currentLayoutMode = 'classic';
     _repositoryFocusApplied = false;
 
     get isListView() {
@@ -158,14 +155,6 @@ export default class FormBuilderVisual extends LightningElement {
     }
     get showCloneInToolbar() {
         return !this.repositoryMode;
-    }
-
-    get showConfigInToolbar() {
-        return !this.repositoryMode;
-    }
-
-    get formLayoutMode() {
-        return this.configLayoutMode || this.formStructure?.form?.C_Layout_Mode__c || 'Classic';
     }
 
     /** True when editing a library section or question from Asset Repository (narrow UI). */
@@ -1066,8 +1055,7 @@ export default class FormBuilderVisual extends LightningElement {
                     Name: this.newFormName,
                     C_Description__c: this.newFormDescription,
                     C_Status__c: 'Draft',
-                    C_Version__c: 1,
-                    C_Layout_Mode__c: this.formLayoutMode
+                    C_Version__c: 1
                 }
             });
             this.showNewFormModal = false;
@@ -1760,15 +1748,6 @@ export default class FormBuilderVisual extends LightningElement {
         return '';
     }
 
-    get layoutModeOptions() {
-        return [
-            { label: 'Classic', value: 'classic' },
-            { label: 'Conversational', value: 'conversational' },
-            { label: 'Wizard', value: 'wizard' },
-            { label: 'Card Based', value: 'cardBased' }
-        ];
-    }
-
     async handleSaveDependency() {
         const dep = { ...this.newDependency };
         if (!dep.C_Controlling_Response__c || !dep.C_Target_Type__c || !dep.C_Action__c) {
@@ -1884,47 +1863,6 @@ export default class FormBuilderVisual extends LightningElement {
 
     handleBuilderQuickAddResponse(event) {
         this.createNewResponse(event.detail.questionId);
-    }
-
-    // --- Config Modal ---
-
-    handleCloseConfigModal() {
-        this.showConfigModal = false;
-    }
-
-    handleSaveConfig() {
-        this.showConfigModal = false;
-    }
-
-    handleOpenConfigModal() {
-        this.configLayoutMode = this.formStructure?.form?.C_Layout_Mode__c || 'Classic';
-        this.showConfigModal = true;
-    }
-
-    handleConfigLayoutModeChange(event) {
-        this.configLayoutMode = event.detail.value;
-    }
-
-    async handleSaveConfig() {
-        if (!this.formStructure?.form) return;
-    
-        this.isLoading = true;
-        try {
-            await saveForm({
-                form: {
-                    ...this.formStructure.form,
-                    C_Layout_Mode__c: this.configLayoutMode
-                }
-            });
-    
-            this.showConfigModal = false;
-            this.showSuccess('Configuration saved');
-            await this.refreshFormStructure();
-        } catch (error) {
-            this.showError('Error saving configuration', error);
-        } finally {
-            this.isLoading = false;
-        }
     }
 
     // --- Clone Form ---

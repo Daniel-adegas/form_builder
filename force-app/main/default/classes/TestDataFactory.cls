@@ -208,7 +208,6 @@ public class TestDataFactory {
             C_Description__c = 'Complete form structure for testing',
             C_Status__c = 'Published',
             C_Version__c = 1,
-            C_Layout_Mode__c = 'classic',
             C_Default_Language__c = 'en'
         );
         insert form;

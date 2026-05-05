@@ -116,7 +116,6 @@ private class FormServiceTest {
         Assert.areEqual(form.Id, wrapper.formId, 'Form Id should match');
         Assert.areEqual('en', wrapper.defaultLanguage, 'Default language should be en');
         Assert.isNotNull(wrapper.pages, 'Pages should not be null');
-        Assert.areEqual('Classic', wrapper.rendererLayout, 'Renderer layout should be Classic');
         Assert.areEqual(2, wrapper.pages.size(), 'Should return 2 pages');
     }
 

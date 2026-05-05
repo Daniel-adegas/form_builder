@@ -238,12 +238,6 @@ export default class FormRenderer extends LightningElement {
         return text;
     }
 
-    get rendererLayout() { return this.formMeta?.layoutMode || 'classic'; }
-    get isClassic() { return this.rendererLayout?.toLowerCase() === 'classic'; }
-    get isConversational() { return this.rendererLayout?.toLowerCase() === 'conversational'; }
-    get isCardBased() { return this.rendererLayout?.toLowerCase() === 'cardbased'; }
-    get isWizard() { return this.rendererLayout?.toLowerCase() === 'wizard'; }
-
     connectedCallback() {
         if (this._initialized) return;
         this._initialized = true;
@@ -307,8 +301,7 @@ export default class FormRenderer extends LightningElement {
             this.formMeta = {
                 formName: result.formName,
                 formId: result.formId,
-                defaultLanguage: result.defaultLanguage,
-                layoutMode: result.layoutMode
+                defaultLanguage: result.defaultLanguage
             };
             this.formStructure = JSON.parse(JSON.stringify(result.pages));
             this.categoryPageMap = this._buildCategoryPageMap(result.categories);
@@ -373,8 +366,7 @@ export default class FormRenderer extends LightningElement {
             this.formMeta = {
                 formName: result.formName,
                 formId: result.formId,
-                defaultLanguage: result.defaultLanguage,
-                layoutMode: result.layoutMode
+                defaultLanguage: result.defaultLanguage
             };
             this.formStructure = JSON.parse(JSON.stringify(result.pages));
             this.categoryPageMap = this._buildCategoryPageMap(result.categories);
@@ -618,7 +610,7 @@ export default class FormRenderer extends LightningElement {
     }
 
     handleNav(event) {
-        const direction = event?.detail?.direction || event?.currentTarget?.dataset?.direction;
+        const direction = event.currentTarget.dataset.direction;
         if (direction === 'next' && !this.isLastPage) {
             this.currentStep++;
             this._scheduleAutoSave();
@@ -629,8 +621,7 @@ export default class FormRenderer extends LightningElement {
     }
 
     handleStepClick(event) {
-        const rawIdx = event?.detail?.index ?? event?.currentTarget?.dataset?.index;
-        const idx = parseInt(rawIdx, 10);
+        const idx = parseInt(event.currentTarget.dataset.index, 10);
         if (!isNaN(idx) && idx >= 0 && idx < this.visiblePages.length) {
             this.currentStep = idx;
             this._scheduleAutoSave();
