@@ -7,7 +7,6 @@ export default class FormRendererLayoutCardBased extends LightningElement {
     @api currentSections;
     @api readOnly;
     @api featureSettings;
-    @api handleResponse;
 
     get questionCards() {
         const cards = [];

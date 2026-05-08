@@ -1,4 +1,5 @@
 import { LightningElement, api } from 'lwc';
+import { tableQuestionHasAnswer } from 'c/formTableQuestionUtil';
 
 export default class FormRendererLayoutWizard extends LightningElement {
     @api formStructure = [];
@@ -15,6 +16,7 @@ export default class FormRendererLayoutWizard extends LightningElement {
     activeQuestionId;
     answerState = {};
     pendingScrollQuestionId;
+    scrollHighlightTimeoutId;
 
     get currentQuestions() {
         const questions = [];
@@ -95,6 +97,11 @@ export default class FormRendererLayoutWizard extends LightningElement {
 
         const liveAnswer = this.answerState[question.questionId];
 
+        if (question.questionType === 'Table') {
+            const textValue = liveAnswer?.textValue ?? question.textValue;
+            return tableQuestionHasAnswer(textValue);
+        }
+
         if (liveAnswer) {
             return this.hasRealValue(liveAnswer.value) || this.hasRealValue(liveAnswer.textValue);
         }
@@ -122,9 +129,7 @@ export default class FormRendererLayoutWizard extends LightningElement {
                         const cellText = String(cell ?? '').trim();
 
                         return (
-                            cellText !== '' &&
-                            cellText !== '1' &&
-                            cellText !== '2'
+                            cellText !== ''
                         );
                     });
                 });
@@ -211,6 +216,13 @@ export default class FormRendererLayoutWizard extends LightningElement {
         this.scrollToQuestion(questionId);
     }
 
+    disconnectedCallback() {
+        if (this.scrollHighlightTimeoutId != null) {
+            clearTimeout(this.scrollHighlightTimeoutId);
+            this.scrollHighlightTimeoutId = null;
+        }
+    }
+
     scrollToQuestion(questionId) {
         const questionEl = this.template.querySelector(
             `[data-body-question-id="${questionId}"]`
@@ -229,7 +241,12 @@ export default class FormRendererLayoutWizard extends LightningElement {
 
         questionEl.classList.add('question-highlight');
 
-        window.setTimeout(() => {
+        if (this.scrollHighlightTimeoutId != null) {
+            clearTimeout(this.scrollHighlightTimeoutId);
+        }
+
+        this.scrollHighlightTimeoutId = window.setTimeout(() => {
+            this.scrollHighlightTimeoutId = null;
             questionEl.classList.remove('question-highlight');
         }, 2100);
     }

@@ -133,6 +133,12 @@
                     </div>
                 </template>
 
+                <template if:true={currentFormDescription}>
+                    <div class="form-description-container">
+                        <p class="form-description">{currentFormDescription}</p>
+                    </div>
+                </template>
+
                 <!-- Step Pills -->
                 <template if:false={isConversational}>
                     <div class="steps-container">
@@ -145,69 +151,23 @@
                     </div>
                 </template>
 
-                <!-- Page Content -->
-                <!-- <div class="page-content">
-                    <template if:true={currentPage}> -->
-                        <!-- Page Title -->
-                        <!-- <div class="page-title-area">
-                            <h2 class="page-title">{currentPageName}</h2>
-                            <template if:true={currentPageDescription}>
-                                <p class="page-description">{currentPageDescription}</p>
-                            </template>
-                        </div> -->
-
-                        <!-- Sections -->
-                        <!-- <template for:each={currentSections} for:item="section">
-                            <div class="section-card" key={section.sectionId}>
-                                <div class="section-card-header">
-                                    <h3 class="section-name">{section.translatedName}</h3>
-                                    <template if:true={section.bonus}>
-                                        <span class="bonus-badge">Bonus</span>
-                                    </template>
-                                </div>
-                                <div class="section-card-body slds-grid slds-wrap slds-gutters_small">
-                                    <template for:each={section.visibleQuestions} for:item="quest">
-                                        <div class={quest.questionLayoutClass} key={quest.questionId}>
-                                            <c-form-question
-                                                question={quest}
-                                                section-id={section.sectionId}
-                                                read-only={isReadOnly}
-                                                feature-settings={featureSettings}
-                                                onvaluechange={handleResponse}
-                                            ></c-form-question>
-                                        </div>
-                                    </template>
-                                    <template if:false={section.visibleQuestions.length}>
-                                        <p class="empty-section-msg slds-col slds-size_1-of-1">No questions in this section.</p>
-                                    </template>
-                                </div>
-                            </div>
-                        </template>
-                    </template>
-                </div> -->
-
-                <!-- Renderer Layout -->
+                 <!-- Page Content Renderer Layout -->
                 <template if:true={isClassic}>
                     <c-form-renderer-layout-classic
                         current-page={currentPage}
                         current-page-name={currentPageName}
                         current-page-description={currentPageDescription}
                         current-sections={currentSections}
-                        is-first-page={isFirstPage}
-                        is-last-page={isLastPage}
-                        is-read-only={isReadOnly}
-                        show-submit-button={showSubmitButton}
-                        read-only-banner-text={readOnlyBannerText}
+                        read-only={isReadOnly}
                         feature-settings={featureSettings}
-                        handle-response={handleResponse}
-                        progress-width={progressWidth}
+                        onvaluechange={handleResponse}
                     ></c-form-renderer-layout-classic>
                 </template>
                 <template if:true={isConversational}>
                     <c-form-renderer-layout-conversational
                         current-page={currentPage}
                         current-page-name={currentPageName}
-                        current-page-description={currentPageDescription}
+                        current-page-description={currentFormDescription}
                         current-sections={currentSections}
                         read-only={isReadOnly}
                         feature-settings={featureSettings}
@@ -219,7 +179,7 @@
                     <c-form-renderer-layout-card-based
                         current-page={currentPage}
                         current-page-name={currentPageName}
-                        current-page-description={currentPageDescription}
+                        current-page-description={currentFormDescription}
                         current-sections={currentSections}
                         read-only={isReadOnly}
                         feature-settings={featureSettings}
@@ -232,7 +192,7 @@
                         hidden-elements={hiddenElements}
                         current-page={currentPage}
                         current-page-name={currentPageName}
-                        current-page-description={currentPageDescription}
+                        current-page-description={currentFormDescription}
                         current-sections={currentSections}
                         progress-steps={progressSteps}
                         current-step={currentStep}

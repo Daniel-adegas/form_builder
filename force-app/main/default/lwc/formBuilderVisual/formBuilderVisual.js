@@ -120,7 +120,7 @@ export default class FormBuilderVisual extends LightningElement {
     };
     @track showCloneModal = false;
     @track showConfigModal = false;
-    @track configLayoutMode = 'Classic';
+    @track configLayoutMode = 'classic';
     @track cloneFormName = '';
     @track fieldMappingTargets = [];
     @track questionMappingMap = {};
@@ -165,7 +165,7 @@ export default class FormBuilderVisual extends LightningElement {
     }
 
     get formLayoutMode() {
-        return this.configLayoutMode || this.formStructure?.form?.C_Layout_Mode__c || 'Classic';
+        return this.configLayoutMode || this.formStructure?.form?.C_Layout_Mode__c || 'classic';
     }
 
     /** True when editing a library section or question from Asset Repository (narrow UI). */
@@ -1892,12 +1892,8 @@ export default class FormBuilderVisual extends LightningElement {
         this.showConfigModal = false;
     }
 
-    handleSaveConfig() {
-        this.showConfigModal = false;
-    }
-
     handleOpenConfigModal() {
-        this.configLayoutMode = this.formStructure?.form?.C_Layout_Mode__c || 'Classic';
+        this.configLayoutMode = this.formStructure?.form?.C_Layout_Mode__c || 'classic';
         this.showConfigModal = true;
     }
 

@@ -27,6 +27,7 @@ import getFeatureSettings from '@salesforce/apex/FeatureSettingsService.getFeatu
 import getSubmissionWithResponses from '@salesforce/apex/FormSubmissionService.getSubmissionWithResponses';
 import getPrePopulationData from '@salesforce/apex/FieldMappingService.getPrePopulationData';
 import { countWords, maxWordsExceededMessage } from 'c/formWordCountUtil';
+import { tableQuestionHasAnswer } from 'c/formTableQuestionUtil';
 
 const AUTO_SAVE_DELAY = 3000;
 
@@ -141,6 +142,7 @@ export default class FormRenderer extends LightningElement {
         return this.visiblePages.map((p, idx) => ({
             ...p,
             translatedPageName: this.getTranslated('Page', p.pageId, 'Name') || p.pageName,
+            translatedPageDescription: this.getTranslated('Page', p.pageId, 'C_Description__c') || p.description,
             stepIndex: idx + 1,
             isCurrent: idx === this.currentStep,
             isCompleted: idx < this.currentStep,
@@ -162,9 +164,15 @@ export default class FormRenderer extends LightningElement {
         return this.getTranslated('Page', page.pageId, 'Name') || page.pageName;
     }
 
+    get currentFormDescription() {
+        const formDescription = this.formMeta?.description || '';
+        return formDescription;
+    }
+
     get currentPageDescription() {
         const page = this.currentPage;
-        if (!page) return '';
+        console.log('page', this.currentPage.description);
+        if (!page) return ''; 
         return this.getTranslated('Page', page.pageId, 'C_Description__c') || page.description;
     }
 
@@ -308,7 +316,8 @@ export default class FormRenderer extends LightningElement {
                 formName: result.formName,
                 formId: result.formId,
                 defaultLanguage: result.defaultLanguage,
-                layoutMode: result.layoutMode
+                layoutMode: result.layoutMode,
+                description: result.description
             };
             this.formStructure = JSON.parse(JSON.stringify(result.pages));
             this.categoryPageMap = this._buildCategoryPageMap(result.categories);
@@ -374,7 +383,8 @@ export default class FormRenderer extends LightningElement {
                 formName: result.formName,
                 formId: result.formId,
                 defaultLanguage: result.defaultLanguage,
-                layoutMode: result.layoutMode
+                layoutMode: result.layoutMode,
+                description: result.description
             };
             this.formStructure = JSON.parse(JSON.stringify(result.pages));
             this.categoryPageMap = this._buildCategoryPageMap(result.categories);
@@ -879,7 +889,10 @@ export default class FormRenderer extends LightningElement {
                     }
                     const isReq = q.isRequired || this.requiredByDependency[q.questionId];
                     if (!isReq) continue;
-                    const hasValue = (q.value != null && q.value !== '') || (q.textValue != null && q.textValue !== '');
+                    const hasValue =
+                        q.questionType === 'Table'
+                            ? tableQuestionHasAnswer(q.textValue)
+                            : (q.value != null && q.value !== '') || (q.textValue != null && q.textValue !== '');
                     if (!hasValue) {
                         errors.push(q.questionText || q.questionName || 'Unnamed question');
                     }

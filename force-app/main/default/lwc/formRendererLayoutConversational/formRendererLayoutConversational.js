@@ -1,10 +1,10 @@
 import { LightningElement, api } from 'lwc';
 import { ShowToastEvent } from 'lightning/platformShowToastEvent';
+import { tableQuestionHasAnswer } from 'c/formTableQuestionUtil';
 
 export default class FormRendererLayoutConversational extends LightningElement {
     @api currentPage;
     @api currentPageName;
-    @api currentPageDescription;
     @api currentSections = [];
     @api readOnly = false;
     @api featureSettings;
@@ -105,6 +105,10 @@ export default class FormRendererLayoutConversational extends LightningElement {
 
         const value = liveAnswer?.value ?? question.value;
         const textValue = liveAnswer?.textValue ?? question.textValue;
+
+        if (question.questionType === 'Table') {
+            return tableQuestionHasAnswer(textValue);
+        }
 
         return this.hasRealValue(value) || this.hasRealValue(textValue);
     }

@@ -39,7 +39,8 @@
                                 <span class="question-nav-text">{question.questionText}</span>
 
                                 <template if:true={question.isAnswered}>
-                                    <span class="answered-check">✓</span>
+                                    <span class="answered-check" aria-hidden="true">✓</span>
+                                    <span class="slds-assistive-text">Answered</span>
                                 </template>
                             </button>
                         </template>
