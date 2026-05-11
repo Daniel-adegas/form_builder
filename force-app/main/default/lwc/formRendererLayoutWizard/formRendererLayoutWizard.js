@@ -18,6 +18,18 @@ export default class FormRendererLayoutWizard extends LightningElement {
     pendingScrollQuestionId;
     scrollHighlightTimeoutId;
 
+    /** Avoids JSON.parse on every getter run for unchanged question values (e.g. each keystroke). */
+    _hasRealValueCache = new Map();
+    _hasRealValueCacheMax = 512;
+
+    _sidebarPagesCache;
+    _sidebarPagesDepsKey;
+    _sidebarBaselineFormRef;
+    _sidebarBaselineProgressRef;
+    _sidebarBaselineHiddenRef;
+    /** Serialized baseline question values; recomputed only when structure @api refs change. */
+    _sidebarValueBaseline = '';
+
     get currentQuestions() {
         const questions = [];
 
@@ -51,6 +63,66 @@ export default class FormRendererLayoutWizard extends LightningElement {
     }
 
     get sidebarPages() {
+        const key = this._getSidebarPagesDepsKey();
+        if (key === this._sidebarPagesDepsKey && this._sidebarPagesCache) {
+            return this._sidebarPagesCache;
+        }
+        this._sidebarPagesDepsKey = key;
+        this._sidebarPagesCache = this._buildSidebarPages();
+        return this._sidebarPagesCache;
+    }
+
+    _syncSidebarValueBaselineIfStale() {
+        const struct = this.formStructure || [];
+        const steps = this.progressSteps || [];
+        const hidden = this.hiddenElements || {};
+        if (
+            struct === this._sidebarBaselineFormRef &&
+            steps === this._sidebarBaselineProgressRef &&
+            hidden === this._sidebarBaselineHiddenRef
+        ) {
+            return;
+        }
+        this._sidebarBaselineFormRef = struct;
+        this._sidebarBaselineProgressRef = steps;
+        this._sidebarBaselineHiddenRef = hidden;
+
+        const stepPart = steps.map(s => s.pageId).join('\u001e');
+        const hiddenPart = Object.keys(hidden)
+            .sort()
+            .map(k => `${k}:${hidden[k]}`)
+            .join('\u001e');
+        const baselinePart = struct
+            .map(p =>
+                (p.sections || [])
+                    .map(sec =>
+                        (sec.questions || [])
+                            .map(
+                                q =>
+                                    `${q.questionId}\u001f${q.questionType}\u001f${q.value}\u001f${q.textValue}`
+                            )
+                            .join('\u001e')
+                    )
+                    .join('\u001d')
+            )
+            .join('\u001c');
+        this._sidebarValueBaseline = [stepPart, hiddenPart, struct.length, baselinePart].join('\u0000');
+    }
+
+    _getSidebarPagesDepsKey() {
+        this._syncSidebarValueBaselineIfStale();
+        const answers = this.answerState || {};
+        const answerPart = Object.keys(answers)
+            .sort()
+            .map(k => {
+                const a = answers[k];
+                return `${k}\u001f${a?.value}\u001f${a?.textValue}`;
+            })
+            .join('\u001e');
+        return [this._sidebarValueBaseline, answerPart, this.activeQuestionId].join('\u0000');
+    }
+
+    _buildSidebarPages() {
         return (this.progressSteps || []).map((step, index) => {
             const page = (this.formStructure || []).find(p => p.pageId === step.pageId);
             const questions = [];
@@ -118,31 +190,48 @@ export default class FormRendererLayoutWizard extends LightningElement {
             return false;
         }
 
+        const first = text[0];
+        if (first !== '[' && first !== '{') {
+            return text !== '';
+        }
+
+        if (this._hasRealValueCache.has(text)) {
+            return this._hasRealValueCache.get(text);
+        }
+
+        let result;
         try {
             const parsed = JSON.parse(text);
 
             if (Array.isArray(parsed)) {
-                return parsed.some(row => {
+                result = parsed.some(row => {
                     if (!row || typeof row !== 'object') return false;
 
                     return Object.values(row).some(cell => {
                         const cellText = String(cell ?? '').trim();
 
-                        return (
-                            cellText !== ''
-                        );
+                        return cellText !== '';
                     });
                 });
-            }
-
-            if (typeof parsed === 'object') {
-                return Object.values(parsed).some(v => String(v ?? '').trim() !== '');
+            } else if (typeof parsed === 'object' && parsed !== null) {
+                result = Object.values(parsed).some(v => String(v ?? '').trim() !== '');
+            } else {
+                result = text !== '';
             }
         } catch (e) {
-            return text !== '';
+            result = text !== '';
         }
 
-        return text !== '';
+        this._memoizeHasRealValue(text, result);
+        return result;
+    }
+
+    _memoizeHasRealValue(text, result) {
+        if (this._hasRealValueCache.size >= this._hasRealValueCacheMax) {
+            const oldestKey = this._hasRealValueCache.keys().next().value;
+            this._hasRealValueCache.delete(oldestKey);
+        }
+        this._hasRealValueCache.set(text, result);
     }
 
     handleValueChange(event) {
@@ -221,6 +310,13 @@ export default class FormRendererLayoutWizard extends LightningElement {
             clearTimeout(this.scrollHighlightTimeoutId);
             this.scrollHighlightTimeoutId = null;
         }
+        this._hasRealValueCache.clear();
+        this._sidebarPagesCache = undefined;
+        this._sidebarPagesDepsKey = undefined;
+        this._sidebarBaselineFormRef = undefined;
+        this._sidebarBaselineProgressRef = undefined;
+        this._sidebarBaselineHiddenRef = undefined;
+        this._sidebarValueBaseline = '';
     }
 
     scrollToQuestion(questionId) {

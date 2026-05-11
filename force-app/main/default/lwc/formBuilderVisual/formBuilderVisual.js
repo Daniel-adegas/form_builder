@@ -56,6 +56,12 @@ const QUESTION_TYPES = [
 
 const RESPONSE_TYPES = new Set(['Picklist', 'Multi-Select', 'Checkbox']);
 
+const MODAL_FOCUSABLE_SELECTOR =
+    'a[href]:not([tabindex="-1"]),button:not([disabled]):not([tabindex="-1"]),' +
+    'textarea:not([disabled]):not([tabindex="-1"]),input:not([disabled]):not([tabindex="-1"]),' +
+    'select:not([disabled]):not([tabindex="-1"]),[tabindex]:not([tabindex="-1"]),' +
+    'lightning-button,lightning-input,lightning-textarea,lightning-combobox';
+
 const TOOLBOX_ITEMS = [
     { key: 'category', label: 'Category', dragType: 'category', icon: 'utility:summary' },
     { key: 'page', label: 'Page', dragType: 'page', icon: 'utility:page' },
@@ -139,6 +145,9 @@ export default class FormBuilderVisual extends LightningElement {
     promoteConfirmKind = '';
     currentLayoutMode = 'classic';
     _repositoryFocusApplied = false;
+    _modalA11yAttached = false;
+    _boundModalKeydown;
+    _boundModalFocusIn;
 
     get isListView() {
         if (this.repositoryMode) {
@@ -922,6 +931,24 @@ export default class FormBuilderVisual extends LightningElement {
             this.isLoading = true;
         }
         this.initializeComponent();
+    }
+
+    disconnectedCallback() {
+        this._detachModalAccessibilityListeners();
+    }
+
+    renderedCallback() {
+        const modalOpen =
+            this.showNewFormModal ||
+            this.showRepositoryModal ||
+            this.showPromoteConfirm ||
+            this.showConfigModal ||
+            this.showCloneModal;
+        if (modalOpen && !this._modalA11yAttached) {
+            this._attachModalAccessibilityListeners();
+        } else if (!modalOpen && this._modalA11yAttached) {
+            this._detachModalAccessibilityListeners();
+        }
     }
 
     async initializeComponent() {
@@ -2197,5 +2224,180 @@ export default class FormBuilderVisual extends LightningElement {
             variant: 'error'
         }));
         console.error('FormBuilderVisual error:', error, 'Stack:', stack);
+    }
+
+    // --- Modal focus trap & Escape (document-level; supports nested shadow DOM in lightning-* children) ---
+
+    _anyModalOpen() {
+        return !!(
+            this.showNewFormModal ||
+            this.showRepositoryModal ||
+            this.showPromoteConfirm ||
+            this.showConfigModal ||
+            this.showCloneModal
+        );
+    }
+
+    _getActiveModalSection() {
+        return this.template.querySelector('section[role="dialog"]');
+    }
+
+    _composedAncestorChainContains(ancestor, node) {
+        let current = node;
+        while (current) {
+            if (current === ancestor) {
+                return true;
+            }
+            if (current.parentNode) {
+                current = current.parentNode;
+            } else if (current instanceof ShadowRoot && current.host) {
+                current = current.host;
+            } else {
+                break;
+            }
+        }
+        return false;
+    }
+
+    _getFocusableModalElements(modalSection) {
+        const nodes = modalSection.querySelectorAll(MODAL_FOCUSABLE_SELECTOR);
+        return Array.from(nodes).filter((el) => {
+            if (typeof el.disabled === 'boolean' && el.disabled) {
+                return false;
+            }
+            if (el.hasAttribute && el.hasAttribute('disabled')) {
+                return false;
+            }
+            if (el.getAttribute && el.getAttribute('tabindex') === '-1') {
+                return false;
+            }
+            const rect = el.getBoundingClientRect();
+            const active = document.activeElement;
+            return rect.width > 0 || rect.height > 0 || this._composedAncestorChainContains(el, active);
+        });
+    }
+
+    _attachModalAccessibilityListeners() {
+        if (this._modalA11yAttached) {
+            return;
+        }
+        if (!this._boundModalKeydown) {
+            this._boundModalKeydown = this._handleModalDocumentKeydown.bind(this);
+        }
+        if (!this._boundModalFocusIn) {
+            this._boundModalFocusIn = this._handleModalFocusIn.bind(this);
+        }
+        window.addEventListener('keydown', this._boundModalKeydown, true);
+        document.addEventListener('focusin', this._boundModalFocusIn, true);
+        this._modalA11yAttached = true;
+    }
+
+    _detachModalAccessibilityListeners() {
+        if (!this._modalA11yAttached) {
+            return;
+        }
+        window.removeEventListener('keydown', this._boundModalKeydown, true);
+        document.removeEventListener('focusin', this._boundModalFocusIn, true);
+        this._modalA11yAttached = false;
+    }
+
+    _handleModalFocusIn(event) {
+        if (!this._anyModalOpen()) {
+            return;
+        }
+        const modal = this._getActiveModalSection();
+        if (!modal) {
+            return;
+        }
+        if (this._composedAncestorChainContains(modal, event.target)) {
+            return;
+        }
+        requestAnimationFrame(() => {
+            if (!this._anyModalOpen()) {
+                return;
+            }
+            const modalStill = this._getActiveModalSection();
+            if (!modalStill) {
+                return;
+            }
+            const focusables = this._getFocusableModalElements(modalStill);
+            const target = focusables.length ? focusables[0] : modalStill;
+            target.focus({ preventScroll: true });
+        });
+    }
+
+    _handleModalDocumentKeydown(event) {
+        if (!this._anyModalOpen()) {
+            return;
+        }
+        const modal = this._getActiveModalSection();
+        if (!modal) {
+            return;
+        }
+
+        if (event.key === 'Escape') {
+            event.preventDefault();
+            event.stopPropagation();
+            this._closeActiveModalFromEscape();
+            return;
+        }
+
+        if (event.key !== 'Tab' || event.ctrlKey || event.metaKey || event.altKey) {
+            return;
+        }
+
+        const focusables = this._getFocusableModalElements(modal);
+        const active = document.activeElement;
+
+        if (!focusables.length) {
+            event.preventDefault();
+            modal.focus({ preventScroll: true });
+            return;
+        }
+
+        const first = focusables[0];
+        const last = focusables[focusables.length - 1];
+        const activeInsideModal = this._composedAncestorChainContains(modal, active);
+
+        if (!activeInsideModal) {
+            event.preventDefault();
+            first.focus({ preventScroll: true });
+            return;
+        }
+
+        const onFirst = this._composedAncestorChainContains(first, active);
+        const onLast = this._composedAncestorChainContains(last, active);
+
+        if (event.shiftKey) {
+            if (onFirst) {
+                event.preventDefault();
+                last.focus({ preventScroll: true });
+            }
+        } else if (onLast) {
+            event.preventDefault();
+            first.focus({ preventScroll: true });
+        }
+    }
+
+    _closeActiveModalFromEscape() {
+        if (this.showNewFormModal) {
+            this.handleCloseNewForm();
+            return;
+        }
+        if (this.showRepositoryModal) {
+            this.closeRepositoryModal();
+            return;
+        }
+        if (this.showPromoteConfirm) {
+            this.handleCancelPromoteConfirm();
+            return;
+        }
+        if (this.showConfigModal) {
+            this.handleCloseConfigModal();
+            return;
+        }
+        if (this.showCloneModal) {
+            this.handleCancelClone();
+        }
     }
 }

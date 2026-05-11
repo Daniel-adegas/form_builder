@@ -105,6 +105,10 @@
     margin-top: 2rem;
 }
 
+.conversation-validation-error {
+    margin-top: 1rem;
+}
+
 .empty-state {
     padding: 2rem;
     text-align: center;

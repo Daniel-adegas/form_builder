@@ -1,17 +1,31 @@
-import { LightningElement, api } from 'lwc';
-import { ShowToastEvent } from 'lightning/platformShowToastEvent';
-import { tableQuestionHasAnswer } from 'c/formTableQuestionUtil';
+import { LightningElement, api, track } from 'lwc';
 
 export default class FormRendererLayoutConversational extends LightningElement {
     @api currentPage;
     @api currentPageName;
     @api currentSections = [];
     @api readOnly = false;
+    /** When true, blocks finishing the conversational flow (matches FormRenderer preview). */
+    @api previewMode = false;
     @api featureSettings;
 
     activeIndex = 0;
     lastPageId;
-    answerState = {};
+
+    @track validationInlineError = '';
+
+    get isEffectiveReadOnly() {
+        return this.readOnly === true || this.readOnly === 'true';
+    }
+
+    get isPreviewModeEffective() {
+        return this.previewMode === true || this.previewMode === 'true';
+    }
+
+    /** Prevent submit/finish while read-only or preview (footer submit is hidden there; conversational OK button must match). */
+    get isPrimaryActionDisabled() {
+        return this.isLastQuestion && (this.isEffectiveReadOnly || this.isPreviewModeEffective);
+    }
 
     renderedCallback() {
         const pageId = this.currentPage?.pageId;
@@ -19,6 +33,7 @@ export default class FormRendererLayoutConversational extends LightningElement {
         if (pageId && pageId !== this.lastPageId) {
             this.lastPageId = pageId;
             this.activeIndex = 0;
+            this.validationInlineError = '';
         }
 
         if (this.activeIndex >= this.totalQuestions && this.totalQuestions > 0) {
@@ -84,66 +99,31 @@ export default class FormRendererLayoutConversational extends LightningElement {
         return this.isLastQuestion ? 'Submit' : 'OK';
     }
 
-    get isActiveQuestionRequired() {
-        return this.activeQuestion?.isRequired === true;
-    }
-
-    showToast(title, message, variant = 'info') {
-        this.dispatchEvent(
-            new ShowToastEvent({
-                title,
-                message,
-                variant
-            })
-        );
-    }
-
-    hasAnswer(question) {
-        if (!question) return false;
-
-        const liveAnswer = this.answerState[question.questionId];
-
-        const value = liveAnswer?.value ?? question.value;
-        const textValue = liveAnswer?.textValue ?? question.textValue;
-
-        if (question.questionType === 'Table') {
-            return tableQuestionHasAnswer(textValue);
-        }
-
-        return this.hasRealValue(value) || this.hasRealValue(textValue);
-    }
-
-    hasRealValue(value) {
-        if (value === null || value === undefined) return false;
-
-        if (Array.isArray(value)) {
-            return value.length > 0;
-        }
-
-        const text = String(value).trim();
-
-        return text !== '' && text !== '[]' && text !== '{}';
-    }
-
     validateActiveQuestion() {
-        if (!this.isActiveQuestionRequired) {
+        this.validationInlineError = '';
+
+        if (this.isEffectiveReadOnly || this.isPreviewModeEffective) {
             return true;
         }
 
-        if (this.hasAnswer(this.activeQuestion)) {
+        const fq = this.template.querySelector('c-form-question');
+        if (!fq || typeof fq.checkInputValidity !== 'function') {
             return true;
         }
 
-        this.showToast(
-            'Required question',
-            'Please answer this question before continuing.',
-            'error'
-        );
+        if (!fq.checkInputValidity()) {
+            this.validationInlineError = 'Please correct this answer before continuing.';
+            return false;
+        }
 
-        return false;
+        return true;
     }
 
     handleNext() {
+        if (this.isLastQuestion && (this.isEffectiveReadOnly || this.isPreviewModeEffective)) {
+            return;
+        }
+
         if (!this.validateActiveQuestion()) {
             return;
         }
@@ -162,21 +142,15 @@ export default class FormRendererLayoutConversational extends LightningElement {
     }
 
     handlePrevious() {
+        this.validationInlineError = '';
         if (!this.isFirstQuestion) {
             this.activeIndex -= 1;
         }
     }
 
     handleValueChange(event) {
+        this.validationInlineError = '';
         const detail = event.detail || {};
-
-        this.answerState = {
-            ...this.answerState,
-            [detail.questionId]: {
-                value: detail.value,
-                textValue: detail.textValue
-            }
-        };
 
         this.dispatchEvent(
             new CustomEvent('valuechange', {

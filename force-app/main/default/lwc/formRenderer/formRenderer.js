@@ -27,7 +27,6 @@ import getFeatureSettings from '@salesforce/apex/FeatureSettingsService.getFeatu
 import getSubmissionWithResponses from '@salesforce/apex/FormSubmissionService.getSubmissionWithResponses';
 import getPrePopulationData from '@salesforce/apex/FieldMappingService.getPrePopulationData';
 import { countWords, maxWordsExceededMessage } from 'c/formWordCountUtil';
-import { tableQuestionHasAnswer } from 'c/formTableQuestionUtil';
 
 const AUTO_SAVE_DELAY = 3000;
 
@@ -39,6 +38,8 @@ export default class FormRenderer extends LightningElement {
     @api language;
     @api hideHeader = false;
     @api readOnly = false;
+    /** When true, the form is rendered for preview only (no submission), e.g. builder or staged content. */
+    @api previewMode = false;
     @api recordId; // auto-set on Record Pages
 
     _userRecordContext = '';
@@ -104,9 +105,11 @@ export default class FormRenderer extends LightningElement {
     get isSuccessMode() { return this.mode === 'success'; }
     get isReadOnly() { return this.readOnly === true || this.readOnly === 'true' || this._forceReadOnly === true; }
 
+    get isPreviewMode() { return this.previewMode === true || this.previewMode === 'true'; }
+
     get showHeader() { return !(this.hideHeader === true || this.hideHeader === 'true'); }
     get showBackButton() { return this.showHeader && !this.formId && !this.isReadOnly; }
-    get showSubmitButton() { return !this.isReadOnly; }
+    get showSubmitButton() { return !this.isReadOnly && !this.isPreviewMode; }
 
     get isLaunchDisabled() { return !this.selectedFormId; }
 
@@ -142,7 +145,6 @@ export default class FormRenderer extends LightningElement {
         return this.visiblePages.map((p, idx) => ({
             ...p,
             translatedPageName: this.getTranslated('Page', p.pageId, 'Name') || p.pageName,
-            translatedPageDescription: this.getTranslated('Page', p.pageId, 'C_Description__c') || p.description,
             stepIndex: idx + 1,
             isCurrent: idx === this.currentStep,
             isCompleted: idx < this.currentStep,
@@ -164,15 +166,9 @@ export default class FormRenderer extends LightningElement {
         return this.getTranslated('Page', page.pageId, 'Name') || page.pageName;
     }
 
-    get currentFormDescription() {
-        const formDescription = this.formMeta?.description || '';
-        return formDescription;
-    }
-
     get currentPageDescription() {
         const page = this.currentPage;
-        console.log('page', this.currentPage.description);
-        if (!page) return ''; 
+        if (!page) return '';
         return this.getTranslated('Page', page.pageId, 'C_Description__c') || page.description;
     }
 
@@ -316,8 +312,7 @@ export default class FormRenderer extends LightningElement {
                 formName: result.formName,
                 formId: result.formId,
                 defaultLanguage: result.defaultLanguage,
-                layoutMode: result.layoutMode,
-                description: result.description
+                layoutMode: result.layoutMode
             };
             this.formStructure = JSON.parse(JSON.stringify(result.pages));
             this.categoryPageMap = this._buildCategoryPageMap(result.categories);
@@ -383,8 +378,7 @@ export default class FormRenderer extends LightningElement {
                 formName: result.formName,
                 formId: result.formId,
                 defaultLanguage: result.defaultLanguage,
-                layoutMode: result.layoutMode,
-                description: result.description
+                layoutMode: result.layoutMode
             };
             this.formStructure = JSON.parse(JSON.stringify(result.pages));
             this.categoryPageMap = this._buildCategoryPageMap(result.categories);
@@ -889,10 +883,7 @@ export default class FormRenderer extends LightningElement {
                     }
                     const isReq = q.isRequired || this.requiredByDependency[q.questionId];
                     if (!isReq) continue;
-                    const hasValue =
-                        q.questionType === 'Table'
-                            ? tableQuestionHasAnswer(q.textValue)
-                            : (q.value != null && q.value !== '') || (q.textValue != null && q.textValue !== '');
+                    const hasValue = (q.value != null && q.value !== '') || (q.textValue != null && q.textValue !== '');
                     if (!hasValue) {
                         errors.push(q.questionText || q.questionName || 'Unnamed question');
                     }
@@ -903,7 +894,7 @@ export default class FormRenderer extends LightningElement {
     }
 
     async handleFinish() {
-        if (this.isReadOnly) return;
+        if (this.isReadOnly || this.isPreviewMode) return;
 
         this._evaluateCrossFieldRules();
         this.template.querySelectorAll('c-form-question').forEach((el) => {
@@ -917,7 +908,7 @@ export default class FormRenderer extends LightningElement {
                 validationErrors.length <= 3
                     ? 'Please correct: ' + validationErrors.join('; ')
                     : `Please correct ${validationErrors.length} issues before submitting.`;
-            this._notify('Validation Error', msg, 'error');
+            this._showInlineAlert('Validation Error', msg, 'error');
             return;
         }
 
@@ -949,16 +940,20 @@ export default class FormRenderer extends LightningElement {
         this.inlineMessage = { ...this.inlineMessage, visible: false };
     }
 
+    _showInlineAlert(title, message, variant) {
+        this.inlineMessage = { title, message, variant, visible: true };
+        if (this._notifyTimer) clearTimeout(this._notifyTimer);
+        // eslint-disable-next-line @lwc/lwc/no-async-operation
+        this._notifyTimer = setTimeout(() => {
+            this.inlineMessage = { ...this.inlineMessage, visible: false };
+        }, 6000);
+    }
+
     _notify(title, message, variant) {
         try {
             this.dispatchEvent(new ShowToastEvent({ title, message, variant }));
         } catch (e) {
-            this.inlineMessage = { title, message, variant, visible: true };
-            if (this._notifyTimer) clearTimeout(this._notifyTimer);
-            // eslint-disable-next-line @lwc/lwc/no-async-operation
-            this._notifyTimer = setTimeout(() => {
-                this.inlineMessage = { ...this.inlineMessage, visible: false };
-            }, 6000);
+            this._showInlineAlert(title, message, variant);
         }
     }
 
