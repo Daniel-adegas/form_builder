@@ -31,12 +31,18 @@ public with sharing class FormService {
     @AuraEnabled(cacheable=false)
     public static FormStructure_Wrapper getFormStructureWithMeta(Id formId) {
         try {
-            C_Form__c form = [SELECT Id, Name, C_Default_Language__c, C_Layout_Mode__c FROM C_Form__c WHERE Id = :formId LIMIT 1];
+            C_Form__c form = [
+                SELECT Id, Name, C_Description__c, C_Default_Language__c, C_Layout_Mode__c
+                FROM C_Form__c
+                WHERE Id = :formId
+                LIMIT 1
+            ];
             FormStructure_Wrapper wrapper = new FormStructure_Wrapper();
             wrapper.formName = form.Name;
             wrapper.formId = form.Id;
+            wrapper.description = form.C_Description__c;
             wrapper.defaultLanguage = form.C_Default_Language__c;
-            wrapper.layoutMode = String.isBlank(form.C_Layout_Mode__c) ? 'Classic' : form.C_Layout_Mode__c;
+            wrapper.layoutMode = String.isBlank(form.C_Layout_Mode__c) ? 'classic' : form.C_Layout_Mode__c;
             FormMetadataReader reader = new FormMetadataReader();
             List<Page_Wrapper> pages = reader.loadStructure(formId);
             wrapper.pages = pages;
@@ -376,6 +382,7 @@ public with sharing class FormService {
     public class FormStructure_Wrapper {
         @AuraEnabled public String formName { get; set; }
         @AuraEnabled public Id formId { get; set; }
+        @AuraEnabled public String description { get; set; }
         @AuraEnabled public String defaultLanguage { get; set; }
         @AuraEnabled public List<Page_Wrapper> pages { get; set; }
         @AuraEnabled public String layoutMode { get; set; }

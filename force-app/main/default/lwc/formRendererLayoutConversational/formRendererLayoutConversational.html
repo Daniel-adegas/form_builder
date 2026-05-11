@@ -1,19 +1,11 @@
 <template>
     <section class="conversation-shell">
         <div class="conversation-progress-row">
-            <div class="conversation-progress">
+            <div class="conversation-progress" role="progressbar" aria-valuenow={activeNumber} aria-valuemin="0" aria-valuemax={totalQuestions} aria-label="Progress through questions">
                 <div class="conversation-progress-fill" style={progressWidth}></div>
             </div>
         
             <span class="counter">{questionCounter}</span>
-        </div>
-
-        <div class="conversation-header">
-            <div>
-                <template if:true={currentPageDescription}>
-                    <p class="description">{currentPageDescription}</p>
-                </template>
-            </div>
         </div>
 
         <template if:true={hasQuestions}>
