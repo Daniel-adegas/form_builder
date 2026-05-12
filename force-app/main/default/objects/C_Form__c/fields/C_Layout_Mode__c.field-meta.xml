@@ -1,4 +1,4 @@
-<?xml version="1.0" encoding="UTF-8"?>
+<?xml version="1.0" encoding="UTF-8" ?>
 <CustomField xmlns="http://soap.sforce.com/2006/04/metadata">
     <fullName>C_Layout_Mode__c</fullName>
     <label>Layout Mode</label>
@@ -13,22 +13,22 @@
             <value>
                 <fullName>classic</fullName>
                 <default>false</default>
-                <label>classic</label>
+                <label>Classic</label>
             </value>
             <value>
                 <fullName>conversational</fullName>
                 <default>false</default>
-                <label>conversational</label>
+                <label>Conversational</label>
             </value>
             <value>
                 <fullName>wizard</fullName>
                 <default>false</default>
-                <label>wizard</label>
+                <label>Wizard</label>
             </value>
             <value>
                 <fullName>cardBased</fullName>
                 <default>false</default>
-                <label>cardBased</label>
+                <label>Card Based</label>
             </value>
         </valueSetDefinition>
     </valueSet>
