@@ -19,6 +19,7 @@ import {
     parseCharMaxLength
 } from 'c/formCharCountUtil';
 import { countWords, maxWordsExceededMessage } from 'c/formWordCountUtil';
+import { tableQuestionHasAnswer } from 'c/formTableQuestionUtil';
 
 const PULSE_MS = 320;
 /** Shown as inline SLDS help only (never via setCustomValidity — avoids browser/Lightning popups). */
@@ -515,7 +516,7 @@ export default class FormQuestion extends LightningElement {
     }
 
     /**
-     * Re-run Long Text validity and show native / base-component validity (used before submit).
+     * Re-run field validity and show native / base-component validity (used before next/submit).
      */
     @api
     reportInputValidity() {
@@ -528,32 +529,135 @@ export default class FormQuestion extends LightningElement {
                 }
                 return;
             }
-        }
-        if (!this.isLongText) {
-            return;
-        }
-        this._longTextTouched = true;
-        const nativeLong = this.template.querySelector('textarea.long-text-native');
-        if (nativeLong) {
-            const v = nativeLong.value;
-            if (this.showWordCounter) {
-                this._applyLongTextValidity(nativeLong, v);
-            } else {
-                this._applyCharCountdownLongNativeValidity(nativeLong, v);
-            }
-            if (typeof nativeLong.reportValidity === 'function') {
-                nativeLong.reportValidity();
+            const shortInput = this.template.querySelector('lightning-input');
+            if (shortInput && typeof shortInput.reportValidity === 'function') {
+                shortInput.reportValidity();
             }
             return;
         }
-        const lt = this.template.querySelector('lightning-textarea');
-        if (lt) {
-            const v = this.question?.textValue ?? '';
-            this._applyLongTextValidity(lt, v);
-            if (typeof lt.reportValidity === 'function') {
-                lt.reportValidity();
+        if (this.isLongText) {
+            this._longTextTouched = true;
+            const nativeLong = this.template.querySelector('textarea.long-text-native');
+            if (nativeLong) {
+                const v = nativeLong.value;
+                if (this.showWordCounter) {
+                    this._applyLongTextValidity(nativeLong, v);
+                } else {
+                    this._applyCharCountdownLongNativeValidity(nativeLong, v);
+                }
+                if (typeof nativeLong.reportValidity === 'function') {
+                    nativeLong.reportValidity();
+                }
+                return;
+            }
+            const lt = this.template.querySelector('lightning-textarea');
+            if (lt) {
+                const v = this.question?.textValue ?? '';
+                this._applyLongTextValidity(lt, v);
+                if (typeof lt.reportValidity === 'function') {
+                    lt.reportValidity();
+                }
+            }
+            return;
+        }
+        if (this.isNumberQuestion || this.isDateQuestion || this.isFileQuestion) {
+            const inp = this.template.querySelector('lightning-input');
+            if (inp && typeof inp.reportValidity === 'function') {
+                inp.reportValidity();
+            }
+            return;
+        }
+        if (this.isPicklist) {
+            const rg = this.template.querySelector('lightning-radio-group');
+            if (rg && typeof rg.reportValidity === 'function') {
+                rg.reportValidity();
+            }
+            return;
+        }
+        if (this.isMultiSelect || this.isCheckboxQuestion) {
+            const cg = this.template.querySelector('lightning-checkbox-group');
+            if (cg && typeof cg.reportValidity === 'function') {
+                cg.reportValidity();
             }
         }
+    }
+
+    _isConstraintApiValid() {
+        if (this.isDisabled) {
+            return true;
+        }
+        if (this.isShortText) {
+            const shortNative = this.template.querySelector('input.char-countdown-short-native');
+            if (shortNative && typeof shortNative.checkValidity === 'function') {
+                return shortNative.checkValidity();
+            }
+            const shortInput = this.template.querySelector('lightning-input');
+            if (shortInput && typeof shortInput.checkValidity === 'function') {
+                return shortInput.checkValidity();
+            }
+            return true;
+        }
+        if (this.isLongText) {
+            const nativeLong = this.template.querySelector('textarea.long-text-native');
+            if (nativeLong && typeof nativeLong.checkValidity === 'function') {
+                return nativeLong.checkValidity();
+            }
+            const lt = this.template.querySelector('lightning-textarea');
+            if (lt && typeof lt.checkValidity === 'function') {
+                return lt.checkValidity();
+            }
+            return true;
+        }
+        if (this.isNumberQuestion || this.isDateQuestion || this.isFileQuestion) {
+            const inp = this.template.querySelector('lightning-input');
+            if (inp && typeof inp.checkValidity === 'function') {
+                return inp.checkValidity();
+            }
+            return true;
+        }
+        if (this.isPicklist) {
+            const rg = this.template.querySelector('lightning-radio-group');
+            if (rg && typeof rg.checkValidity === 'function') {
+                return rg.checkValidity();
+            }
+            return true;
+        }
+        if (this.isMultiSelect || this.isCheckboxQuestion) {
+            const cg = this.template.querySelector('lightning-checkbox-group');
+            if (cg && typeof cg.checkValidity === 'function') {
+                return cg.checkValidity();
+            }
+        }
+        return true;
+    }
+
+    /**
+     * Run full question validation (inline cross-field / word limit, constraint API, required table).
+     * @returns {boolean}
+     */
+    @api
+    checkInputValidity() {
+        if (this.isDisabled) {
+            return true;
+        }
+        if (this.crossFieldErrorMessage) {
+            return false;
+        }
+        if (this.wordLimitErrorMessage) {
+            return false;
+        }
+        if (this.isTableQuestion) {
+            if (!this.isRequired) {
+                return true;
+            }
+            return tableQuestionHasAnswer(this.question?.textValue);
+        }
+        if (this.isLongText && this.isRequired && this.longTextValueTrimmed === '') {
+            this._longTextTouched = true;
+            return false;
+        }
+        this.reportInputValidity();
+        return this._isConstraintApiValid();
     }
 
     dispatchValueChange(value, textValue) {

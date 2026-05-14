@@ -38,6 +38,8 @@ export default class FormRenderer extends LightningElement {
     @api language;
     @api hideHeader = false;
     @api readOnly = false;
+    /** When true, the form is rendered for preview only (no submission), e.g. builder or staged content. */
+    @api previewMode = false;
     @api recordId; // auto-set on Record Pages
 
     _userRecordContext = '';
@@ -103,9 +105,11 @@ export default class FormRenderer extends LightningElement {
     get isSuccessMode() { return this.mode === 'success'; }
     get isReadOnly() { return this.readOnly === true || this.readOnly === 'true' || this._forceReadOnly === true; }
 
+    get isPreviewMode() { return this.previewMode === true || this.previewMode === 'true'; }
+
     get showHeader() { return !(this.hideHeader === true || this.hideHeader === 'true'); }
     get showBackButton() { return this.showHeader && !this.formId && !this.isReadOnly; }
-    get showSubmitButton() { return !this.isReadOnly; }
+    get showSubmitButton() { return !this.isReadOnly && !this.isPreviewMode; }
 
     get isLaunchDisabled() { return !this.selectedFormId; }
 
@@ -238,6 +242,12 @@ export default class FormRenderer extends LightningElement {
         return text;
     }
 
+    get rendererLayout() { return this.formMeta?.layoutMode || 'classic'; }
+    get isClassic() { return this.rendererLayout?.toLowerCase() === 'classic'; }
+    get isConversational() { return this.rendererLayout?.toLowerCase() === 'conversational'; }
+    get isCardBased() { return this.rendererLayout?.toLowerCase() === 'cardbased'; }
+    get isWizard() { return this.rendererLayout?.toLowerCase() === 'wizard'; }
+
     connectedCallback() {
         if (this._initialized) return;
         this._initialized = true;
@@ -301,7 +311,8 @@ export default class FormRenderer extends LightningElement {
             this.formMeta = {
                 formName: result.formName,
                 formId: result.formId,
-                defaultLanguage: result.defaultLanguage
+                defaultLanguage: result.defaultLanguage,
+                layoutMode: result.layoutMode
             };
             this.formStructure = JSON.parse(JSON.stringify(result.pages));
             this.categoryPageMap = this._buildCategoryPageMap(result.categories);
@@ -366,7 +377,8 @@ export default class FormRenderer extends LightningElement {
             this.formMeta = {
                 formName: result.formName,
                 formId: result.formId,
-                defaultLanguage: result.defaultLanguage
+                defaultLanguage: result.defaultLanguage,
+                layoutMode: result.layoutMode
             };
             this.formStructure = JSON.parse(JSON.stringify(result.pages));
             this.categoryPageMap = this._buildCategoryPageMap(result.categories);
@@ -610,7 +622,7 @@ export default class FormRenderer extends LightningElement {
     }
 
     handleNav(event) {
-        const direction = event.currentTarget.dataset.direction;
+        const direction = event?.detail?.direction || event?.currentTarget?.dataset?.direction;
         if (direction === 'next' && !this.isLastPage) {
             this.currentStep++;
             this._scheduleAutoSave();
@@ -621,7 +633,8 @@ export default class FormRenderer extends LightningElement {
     }
 
     handleStepClick(event) {
-        const idx = parseInt(event.currentTarget.dataset.index, 10);
+        const rawIdx = event?.detail?.index ?? event?.currentTarget?.dataset?.index;
+        const idx = parseInt(rawIdx, 10);
         if (!isNaN(idx) && idx >= 0 && idx < this.visiblePages.length) {
             this.currentStep = idx;
             this._scheduleAutoSave();
@@ -881,7 +894,7 @@ export default class FormRenderer extends LightningElement {
     }
 
     async handleFinish() {
-        if (this.isReadOnly) return;
+        if (this.isReadOnly || this.isPreviewMode) return;
 
         this._evaluateCrossFieldRules();
         this.template.querySelectorAll('c-form-question').forEach((el) => {
@@ -895,7 +908,7 @@ export default class FormRenderer extends LightningElement {
                 validationErrors.length <= 3
                     ? 'Please correct: ' + validationErrors.join('; ')
                     : `Please correct ${validationErrors.length} issues before submitting.`;
-            this._notify('Validation Error', msg, 'error');
+            this._showInlineAlert('Validation Error', msg, 'error');
             return;
         }
 
@@ -927,16 +940,20 @@ export default class FormRenderer extends LightningElement {
         this.inlineMessage = { ...this.inlineMessage, visible: false };
     }
 
+    _showInlineAlert(title, message, variant) {
+        this.inlineMessage = { title, message, variant, visible: true };
+        if (this._notifyTimer) clearTimeout(this._notifyTimer);
+        // eslint-disable-next-line @lwc/lwc/no-async-operation
+        this._notifyTimer = setTimeout(() => {
+            this.inlineMessage = { ...this.inlineMessage, visible: false };
+        }, 6000);
+    }
+
     _notify(title, message, variant) {
         try {
             this.dispatchEvent(new ShowToastEvent({ title, message, variant }));
         } catch (e) {
-            this.inlineMessage = { title, message, variant, visible: true };
-            if (this._notifyTimer) clearTimeout(this._notifyTimer);
-            // eslint-disable-next-line @lwc/lwc/no-async-operation
-            this._notifyTimer = setTimeout(() => {
-                this.inlineMessage = { ...this.inlineMessage, visible: false };
-            }, 6000);
+            this._showInlineAlert(title, message, variant);
         }
     }
 

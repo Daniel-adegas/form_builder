@@ -1,0 +1,97 @@
+<template>
+    <section class="wizard-layout">
+        <aside class="wizard-sidebar">
+            <div class="question-progress">
+                <p class="question-progress-label">Current page progress</p>
+
+                <div class="question-progress-bar">
+                    <div class="question-progress-fill" style={questionProgressWidth}></div>
+                </div>
+
+                <p class="question-progress-text">{questionProgressText}</p>
+            </div>
+
+            <p class="wizard-label">Pages</p>
+
+            <template for:each={sidebarPages} for:item="page">
+                <div key={page.pageId} class="sidebar-page-block">
+                    <button
+                        class={page.stepClass}
+                        data-index={page.index}
+                        onclick={handleStepClick}
+                        type="button"
+                    >
+                        <span class="step-number">{page.stepIndex}</span>
+                        <span class="step-text">{page.translatedPageName}</span>
+                    </button>
+
+                    <div class="question-nav-list">
+                        <template for:each={page.questions} for:item="question">
+                            <button
+                                key={question.questionId}
+                                class={question.itemClass}
+                                data-question-id={question.questionId}
+                                data-page-index={page.index}
+                                onclick={handleQuestionNavClick}
+                                type="button"
+                            >
+                                <span class="question-dot"></span>
+                                <span class="question-nav-text">{question.questionText}</span>
+
+                                <template if:true={question.isAnswered}>
+                                    <span class="answered-check" aria-hidden="true">✓</span>
+                                    <span class="slds-assistive-text">Answered</span>
+                                </template>
+                            </button>
+                        </template>
+                    </div>
+                </div>
+            </template>
+        </aside>
+
+        <main class="wizard-content">
+            <div class="page-title-area">
+                <template if:true={currentPageDescription}>
+                    <p class="page-description">{currentPageDescription}</p>
+                </template>
+            </div>
+
+            <template for:each={currentSections} for:item="section">
+                <div class="section-card" key={section.sectionId}>
+                    <div class="section-card-header">
+                        <h3 class="section-name">{section.translatedName}</h3>
+
+                        <template if:true={section.bonus}>
+                            <span class="bonus-badge">Bonus</span>
+                        </template>
+                    </div>
+
+                    <div class="section-card-body slds-grid slds-wrap slds-gutters_small">
+                        <template for:each={section.visibleQuestions} for:item="quest">
+                            <div
+                                class={quest.questionLayoutClass}
+                                key={quest.questionId}
+                                data-body-question-id={quest.questionId}
+                                onfocusin={handleQuestionFocus}
+                            >
+                                <c-form-question
+                                    question={quest}
+                                    section-id={section.sectionId}
+                                    read-only={readOnly}
+                                    feature-settings={featureSettings}
+                                    onvaluechange={handleValueChange}
+                                ></c-form-question>
+                            </div>
+                        </template>
+
+                        <template if:false={section.visibleQuestions.length}>
+                            <p class="empty-section-msg slds-col slds-size_1-of-1">
+                                No questions in this section.
+                            </p>
+                        </template>
+                    </div>
+                </div>
+            </template>
+        </main>
+    </section>
+</template>

@@ -117,112 +117,138 @@
                                     ></lightning-combobox>
                                 </div>
                             </template>
-                            <span class="page-counter-badge">{pageCounter}</span>
+                            <template if:false={isConversational}>
+                                <span class="page-counter-badge">{pageCounter}</span>
+                            </template>
                         </div>
                     </div>
                 </template>
 
                 <!-- Progress Bar -->
-                <div class="progress-bar-container">
-                    <div class="progress-bar-track">
-                        <div class="progress-bar-fill" style={progressWidth}></div>
+                <template if:false={isConversational}>
+                    <div class="progress-bar-container">
+                        <div class="progress-bar-track">
+                            <div class="progress-bar-fill" style={progressWidth}></div>
+                        </div>
                     </div>
-                </div>
+                </template>
+
+                <template if:true={currentFormDescription}>
+                    <div class="form-description-container">
+                        <p class="form-description">{currentFormDescription}</p>
+                    </div>
+                </template>
 
                 <!-- Step Pills -->
-                <div class="steps-container">
-                    <template for:each={progressSteps} for:item="step" for:index="idx">
-                        <div key={step.pageId} class={step.stepClass} data-index={idx} onclick={handleStepClick} onkeydown={handleStepKeydown} role="button" tabindex="0">
-                            <span class="step-number">{step.stepIndex}</span>
-                            <span class="step-label">{step.translatedPageName}</span>
-                        </div>
-                    </template>
-                </div>
-
-                <!-- Page Content -->
-                <div class="page-content">
-                    <template if:true={currentPage}>
-                        <!-- Page Title -->
-                        <div class="page-title-area">
-                            <h2 class="page-title">{currentPageName}</h2>
-                            <template if:true={currentPageDescription}>
-                                <p class="page-description">{currentPageDescription}</p>
-                            </template>
-                        </div>
-
-                        <!-- Sections -->
-                        <template for:each={currentSections} for:item="section">
-                            <div class="section-card" key={section.sectionId}>
-                                <div class="section-card-header">
-                                    <h3 class="section-name">{section.translatedName}</h3>
-                                    <template if:true={section.bonus}>
-                                        <span class="bonus-badge">Bonus</span>
-                                    </template>
-                                </div>
-                                <div class="section-card-body slds-grid slds-wrap slds-gutters_small">
-                                    <template for:each={section.visibleQuestions} for:item="quest">
-                                        <div class={quest.questionLayoutClass} key={quest.questionId}>
-                                            <c-form-question
-                                                question={quest}
-                                                section-id={section.sectionId}
-                                                read-only={isReadOnly}
-                                                feature-settings={featureSettings}
-                                                onvaluechange={handleResponse}
-                                            ></c-form-question>
-                                        </div>
-                                    </template>
-                                    <template if:false={section.visibleQuestions.length}>
-                                        <p class="empty-section-msg slds-col slds-size_1-of-1">No questions in this section.</p>
-                                    </template>
-                                </div>
+                <template if:false={isConversational}>
+                    <div class="steps-container">
+                        <template for:each={progressSteps} for:item="step" for:index="idx">
+                            <div key={step.pageId} class={step.stepClass} data-index={idx} onclick={handleStepClick} onkeydown={handleStepKeydown} role="button" tabindex="0">
+                                <span class="step-number">{step.stepIndex}</span>
+                                <span class="step-label">{step.translatedPageName}</span>
                             </div>
                         </template>
-                    </template>
-                </div>
+                    </div>
+                </template>
+
+                 <!-- Page Content Renderer Layout -->
+                <template if:true={isClassic}>
+                    <c-form-renderer-layout-classic
+                        current-page={currentPage}
+                        current-page-name={currentPageName}
+                        current-page-description={currentPageDescription}
+                        current-sections={currentSections}
+                        read-only={isReadOnly}
+                        feature-settings={featureSettings}
+                        onvaluechange={handleResponse}
+                    ></c-form-renderer-layout-classic>
+                </template>
+                <template if:true={isConversational}>
+                    <c-form-renderer-layout-conversational
+                        current-page={currentPage}
+                        current-page-name={currentPageName}
+                        current-page-description={currentFormDescription}
+                        current-sections={currentSections}
+                        read-only={isReadOnly}
+                        preview-mode={isPreviewMode}
+                        feature-settings={featureSettings}
+                        onvaluechange={handleResponse}
+                        onfinish={handleFinish}
+                    ></c-form-renderer-layout-conversational>
+                </template>
+                <template if:true={isCardBased}>
+                    <c-form-renderer-layout-card-based
+                        current-page={currentPage}
+                        current-page-name={currentPageName}
+                        current-page-description={currentFormDescription}
+                        current-sections={currentSections}
+                        read-only={isReadOnly}
+                        feature-settings={featureSettings}
+                        onvaluechange={handleResponse}
+                    ></c-form-renderer-layout-card-based>
+                </template>
+                <template if:true={isWizard}>
+                    <c-form-renderer-layout-wizard
+                        form-structure={formStructure}
+                        hidden-elements={hiddenElements}
+                        current-page={currentPage}
+                        current-page-name={currentPageName}
+                        current-page-description={currentFormDescription}
+                        current-sections={currentSections}
+                        progress-steps={progressSteps}
+                        current-step={currentStep}
+                        read-only={isReadOnly}
+                        feature-settings={featureSettings}
+                        onvaluechange={handleResponse}
+                        onstepchange={handleStepClick}
+                    ></c-form-renderer-layout-wizard>
+                </template>
 
                 <!-- Navigation Footer -->
-                <div class="nav-footer">
-                    <div class="nav-footer-inner">
-                        <template if:false={isFirstPage}>
-                            <lightning-button
-                                label="Back"
-                                variant="neutral"
-                                icon-name="utility:back"
-                                data-direction="prev"
-                                onclick={handleNav}
-                            ></lightning-button>
-                        </template>
-                        <template if:true={isFirstPage}>
-                            <div></div>
-                        </template>
-
-                        <span class="nav-page-indicator">{pageCounter}</span>
-
-                        <template if:false={isLastPage}>
-                            <lightning-button
-                                label="Next"
-                                variant="brand"
-                                icon-name="utility:forward"
-                                icon-position="right"
-                                data-direction="next"
-                                onclick={handleNav}
-                            ></lightning-button>
-                        </template>
-                        <template if:true={isLastPage}>
-                            <template if:true={showSubmitButton}>
+                <template if:false={isConversational}>
+                    <div class="nav-footer">
+                        <div class="nav-footer-inner">
+                            <template if:false={isFirstPage}>
                                 <lightning-button
-                                    label="Submit"
-                                    variant="success"
-                                    icon-name="utility:check"
-                                    onclick={handleFinish}
+                                    label="Back"
+                                    variant="neutral"
+                                    icon-name="utility:back"
+                                    data-direction="prev"
+                                    onclick={handleNav}
                                 ></lightning-button>
                             </template>
-                            <template if:false={showSubmitButton}>
+                            <template if:true={isFirstPage}>
                                 <div></div>
                             </template>
-                        </template>
+
+                            <span class="nav-page-indicator">{pageCounter}</span>
+
+                            <template if:false={isLastPage}>
+                                <lightning-button
+                                    label="Next"
+                                    variant="brand"
+                                    icon-name="utility:forward"
+                                    icon-position="right"
+                                    data-direction="next"
+                                    onclick={handleNav}
+                                ></lightning-button>
+                            </template>
+                            <template if:true={isLastPage}>
+                                <template if:true={showSubmitButton}>
+                                    <lightning-button
+                                        label="Submit"
+                                        variant="success"
+                                        icon-name="utility:check"
+                                        onclick={handleFinish}
+                                    ></lightning-button>
+                                </template>
+                                <template if:false={showSubmitButton}>
+                                    <div></div>
+                                </template>
+                            </template>
+                        </div>
                     </div>
-                </div>
+                </template>
             </div>
         </template>
     </template>

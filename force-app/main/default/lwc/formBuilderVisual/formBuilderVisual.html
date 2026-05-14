@@ -74,7 +74,7 @@
 
         <!-- New Form Modal -->
         <template if:true={showNewFormModal}>
-            <section role="dialog" tabindex="-1" class="slds-modal slds-fade-in-open">
+            <section role="dialog" aria-modal="true" tabindex="-1" class="slds-modal slds-fade-in-open">
                 <div class="slds-modal__container">
                     <header class="slds-modal__header">
                         <button class="slds-button slds-button_icon slds-modal__close slds-button_icon-inverse" title="Close" onclick={handleCloseNewForm}>
@@ -180,6 +180,14 @@
                             onclick={handleOpenCloneModal}
                             class="slds-m-left_x-small"
                         ></lightning-button>
+                    </template>
+                    <template if:true={showConfigInToolbar}>
+                        <lightning-button
+                            label="Config"
+                            icon-name="utility:settings"
+                            variant="neutral"
+                            onclick={handleOpenConfigModal}>
+                        </lightning-button>
                     </template>
                 </div>
 
@@ -988,7 +996,7 @@
 
         <!-- Repository picker modal -->
         <template if:true={showRepositoryModal}>
-            <section role="dialog" tabindex="-1" class="slds-modal slds-fade-in-open">
+            <section role="dialog" aria-modal="true" tabindex="-1" class="slds-modal slds-fade-in-open">
                 <div class="slds-modal__container repo-modal-wide">
                     <header class="slds-modal__header">
                         <button class="slds-button slds-button_icon slds-modal__close slds-button_icon-inverse" title="Close" onclick={closeRepositoryModal}>
@@ -1034,7 +1042,7 @@
 
         <!-- Publish to repository confirmation -->
         <template if:true={showPromoteConfirm}>
-            <section role="dialog" tabindex="-1" class="slds-modal slds-fade-in-open">
+            <section role="dialog" aria-modal="true" tabindex="-1" class="slds-modal slds-fade-in-open">
                 <div class="slds-modal__container">
                     <header class="slds-modal__header">
                         <h2 class="slds-text-heading_medium">Publish to repository</h2>
@@ -1051,9 +1059,53 @@
             <div class="slds-backdrop slds-backdrop_open"></div>
         </template>
 
+        <!-- Config Modal -->
+        <template if:true={showConfigModal}>
+            <section
+                role="dialog"
+                aria-modal="true"
+                aria-labelledby="form-builder-config-modal-title"
+                tabindex="-1"
+                class="slds-modal slds-fade-in-open">
+                <div class="slds-modal__container">
+                    <header class="slds-modal__header">
+                        <button
+                            class="slds-button slds-button_icon slds-modal__close slds-button_icon-inverse"
+                            title="Close"
+                            aria-label="Close"
+                            onclick={handleCloseConfigModal}>
+                            <lightning-icon icon-name="utility:close" size="small" variant="inverse"></lightning-icon>
+                        </button>
+                        <h2 id="form-builder-config-modal-title" class="slds-text-heading_medium">Form Configuration</h2>
+                    </header>
+
+                    <div class="slds-modal__content slds-p-around_medium">
+                        <lightning-combobox
+                            label="Layout Mode"
+                            value={formLayoutMode}
+                            options={layoutModeOptions}
+                            onchange={handleConfigLayoutModeChange}
+                            class="slds-m-bottom_small">
+                        </lightning-combobox>
+                    </div>
+
+                    <footer class="slds-modal__footer">
+                        <lightning-button label="Cancel" onclick={handleCloseConfigModal}></lightning-button>
+                        <lightning-button
+                            label="Save"
+                            variant="brand"
+                            class="slds-m-left_x-small"
+                            onclick={handleSaveConfig}>
+                        </lightning-button>
+                    </footer>
+                </div>
+            </section>
+            <div class="slds-backdrop slds-backdrop_open"></div>
+        </template>
+
         <!-- Clone Form Modal -->
         <template if:true={showCloneModal}>
-            <section role="dialog" tabindex="-1" class="slds-modal slds-fade-in-open">
+            <section role="dialog" aria-modal="true" tabindex="-1" class="slds-modal slds-fade-in-open">
                 <div class="slds-modal__container">
                     <header class="slds-modal__header">
                         <button class="slds-button slds-button_icon slds-modal__close slds-button_icon-inverse" title="Close" onclick={handleCancelClone}>

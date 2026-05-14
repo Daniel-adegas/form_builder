@@ -126,13 +126,6 @@
     border-radius: 0 2px 2px 0;
 }
 
-.form-description-container {
-    padding: 16px 24px;
-    background: white;
-    border-left: 1px solid #e5e5e5;
-    border-right: 1px solid #e5e5e5;
-}
-
 /* ===== Step Pills ===== */
 .steps-container {
     display: flex;
@@ -225,13 +218,6 @@
     margin: 0;
 }
 .page-description {
-    font-size: 14px;
-    color: #706e6b;
-    margin: 6px 0 0;
-    line-height: 1.5;
-}
-
-.form-description {
     font-size: 14px;
     color: #706e6b;
     margin: 6px 0 0;
