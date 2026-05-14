@@ -317,6 +317,9 @@ export default class FormQuestion extends LightningElement {
   }
 
   get isRequired() {
+    if (this.isDisabled) {
+      return false;
+    }
     return this.question.isRequired === true;
   }
 
@@ -612,8 +615,11 @@ export default class FormQuestion extends LightningElement {
       }
       const lt = this.template.querySelector("lightning-textarea");
       if (lt) {
-        const v = this.question?.textValue ?? "";
-        this._applyLongTextValidity(lt, v);
+        const live =
+          lt.value !== undefined && lt.value !== null
+            ? lt.value
+            : (this.question?.textValue ?? "");
+        this._applyLongTextValidity(lt, live);
         if (typeof lt.reportValidity === "function") {
           return lt.reportValidity();
         }

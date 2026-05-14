@@ -734,7 +734,7 @@
       </div>
 
       <!-- ===== RIGHT: PROPERTIES PANEL ===== -->
-      <div class="properties-panel">
+      <div class="properties-panel" onkeydown={handlePropertiesPanelKeydown}>
         <h3 class="slds-text-heading_small slds-m-bottom_small">
           {propertiesPanelTitle}
         </h3>
@@ -786,6 +786,9 @@
             <div class="prop-section">
               <div
                 class="prop-section-header"
+                role="button"
+                tabindex="0"
+                aria-expanded={propSections.basic.open}
                 data-section="basic"
                 onclick={handleTogglePropertySection}
               >
@@ -843,6 +846,9 @@
             <div class="prop-section">
               <div
                 class="prop-section-header"
+                role="button"
+                tabindex="0"
+                aria-expanded={propSections.dependencies.open}
                 data-section="dependencies"
                 onclick={handleTogglePropertySection}
               >
@@ -873,6 +879,9 @@
               <div class="prop-section">
                 <div
                   class="prop-section-header"
+                  role="button"
+                  tabindex="0"
+                  aria-expanded={propSections.translations.open}
                   data-section="translations"
                   onclick={handleTogglePropertySection}
                 >
@@ -902,6 +911,9 @@
             <div class="prop-section">
               <div
                 class="prop-section-header"
+                role="button"
+                tabindex="0"
+                aria-expanded={propSections.basic.open}
                 data-section="basic"
                 onclick={handleTogglePropertySection}
               >
@@ -942,6 +954,9 @@
             <div class="prop-section">
               <div
                 class="prop-section-header"
+                role="button"
+                tabindex="0"
+                aria-expanded={propSections.dependencies.open}
                 data-section="dependencies"
                 onclick={handleTogglePropertySection}
               >
@@ -972,6 +987,9 @@
               <div class="prop-section">
                 <div
                   class="prop-section-header"
+                  role="button"
+                  tabindex="0"
+                  aria-expanded={propSections.translations.open}
                   data-section="translations"
                   onclick={handleTogglePropertySection}
                 >
@@ -1001,6 +1019,9 @@
             <div class="prop-section">
               <div
                 class="prop-section-header"
+                role="button"
+                tabindex="0"
+                aria-expanded={propSections.basic.open}
                 data-section="basic"
                 onclick={handleTogglePropertySection}
               >
@@ -1035,6 +1056,9 @@
               <div class="prop-section">
                 <div
                   class="prop-section-header"
+                  role="button"
+                  tabindex="0"
+                  aria-expanded={propSections.scoring.open}
                   data-section="scoring"
                   onclick={handleTogglePropertySection}
                 >
@@ -1079,6 +1103,9 @@
               <div class="prop-section">
                 <div
                   class="prop-section-header"
+                  role="button"
+                  tabindex="0"
+                  aria-expanded={propSections.dependencies.open}
                   data-section="dependencies"
                   onclick={handleTogglePropertySection}
                 >
@@ -1110,6 +1137,9 @@
               <div class="prop-section">
                 <div
                   class="prop-section-header"
+                  role="button"
+                  tabindex="0"
+                  aria-expanded={propSections.translations.open}
                   data-section="translations"
                   onclick={handleTogglePropertySection}
                 >
@@ -1136,6 +1166,9 @@
               <div class="prop-section">
                 <div
                   class="prop-section-header"
+                  role="button"
+                  tabindex="0"
+                  aria-expanded={propSections.repository.open}
                   data-section="repository"
                   onclick={handleTogglePropertySection}
                 >
@@ -1169,6 +1202,9 @@
             <div class="prop-section">
               <div
                 class="prop-section-header"
+                role="button"
+                tabindex="0"
+                aria-expanded={propSections.basic.open}
                 data-section="basic"
                 onclick={handleTogglePropertySection}
               >
@@ -1245,6 +1281,9 @@
             <div class="prop-section">
               <div
                 class="prop-section-header"
+                role="button"
+                tabindex="0"
+                aria-expanded={propSections.helpValidation.open}
                 data-section="helpValidation"
                 onclick={handleTogglePropertySection}
               >
@@ -1327,6 +1366,9 @@
               <div class="prop-section">
                 <div
                   class="prop-section-header"
+                  role="button"
+                  tabindex="0"
+                  aria-expanded={propSections.crossFieldRules.open}
                   data-section="crossFieldRules"
                   onclick={handleTogglePropertySection}
                 >
@@ -1360,6 +1402,9 @@
               <div class="prop-section">
                 <div
                   class="prop-section-header"
+                  role="button"
+                  tabindex="0"
+                  aria-expanded={propSections.scoring.open}
                   data-section="scoring"
                   onclick={handleTogglePropertySection}
                 >
@@ -1388,6 +1433,9 @@
               <div class="prop-section">
                 <div
                   class="prop-section-header"
+                  role="button"
+                  tabindex="0"
+                  aria-expanded={propSections.fileOptions.open}
                   data-section="fileOptions"
                   onclick={handleTogglePropertySection}
                 >
@@ -1431,6 +1479,9 @@
               <div class="prop-section">
                 <div
                   class="prop-section-header"
+                  role="button"
+                  tabindex="0"
+                  aria-expanded={propSections.tableOptions.open}
                   data-section="tableOptions"
                   onclick={handleTogglePropertySection}
                 >
@@ -1471,6 +1522,9 @@
             <div class="prop-section">
               <div
                 class="prop-section-header"
+                role="button"
+                tabindex="0"
+                aria-expanded={propSections.styling.open}
                 data-section="styling"
                 onclick={handleTogglePropertySection}
               >
@@ -1498,6 +1552,9 @@
               <div class="prop-section">
                 <div
                   class="prop-section-header"
+                  role="button"
+                  tabindex="0"
+                  aria-expanded={propSections.dependencies.open}
                   data-section="dependencies"
                   onclick={handleTogglePropertySection}
                 >
@@ -1529,6 +1586,9 @@
               <div class="prop-section">
                 <div
                   class="prop-section-header"
+                  role="button"
+                  tabindex="0"
+                  aria-expanded={propSections.fieldMapping.open}
                   data-section="fieldMapping"
                   onclick={handleTogglePropertySection}
                 >
@@ -1556,6 +1616,9 @@
               <div class="prop-section">
                 <div
                   class="prop-section-header"
+                  role="button"
+                  tabindex="0"
+                  aria-expanded={propSections.translations.open}
                   data-section="translations"
                   onclick={handleTogglePropertySection}
                 >
@@ -1582,6 +1645,9 @@
               <div class="prop-section">
                 <div
                   class="prop-section-header"
+                  role="button"
+                  tabindex="0"
+                  aria-expanded={propSections.repository.open}
                   data-section="repository"
                   onclick={handleTogglePropertySection}
                 >
@@ -1615,6 +1681,9 @@
             <div class="prop-section">
               <div
                 class="prop-section-header"
+                role="button"
+                tabindex="0"
+                aria-expanded={propSections.basic.open}
                 data-section="basic"
                 onclick={handleTogglePropertySection}
               >
@@ -1656,6 +1725,9 @@
               <div class="prop-section">
                 <div
                   class="prop-section-header"
+                  role="button"
+                  tabindex="0"
+                  aria-expanded={propSections.scoring.open}
                   data-section="scoring"
                   onclick={handleTogglePropertySection}
                 >
@@ -1683,6 +1755,9 @@
             <div class="prop-section">
               <div
                 class="prop-section-header"
+                role="button"
+                tabindex="0"
+                aria-expanded={propSections.options.open}
                 data-section="options"
                 onclick={handleTogglePropertySection}
               >
@@ -1717,6 +1792,9 @@
             <div class="prop-section">
               <div
                 class="prop-section-header"
+                role="button"
+                tabindex="0"
+                aria-expanded={propSections.dependencies.open}
                 data-section="dependencies"
                 onclick={handleTogglePropertySection}
               >
@@ -1747,6 +1825,9 @@
               <div class="prop-section">
                 <div
                   class="prop-section-header"
+                  role="button"
+                  tabindex="0"
+                  aria-expanded={propSections.translations.open}
                   data-section="translations"
                   onclick={handleTogglePropertySection}
                 >

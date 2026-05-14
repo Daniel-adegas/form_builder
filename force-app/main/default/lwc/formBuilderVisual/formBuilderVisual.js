@@ -1174,7 +1174,7 @@ export default class FormBuilderVisual extends LightningElement {
     }
     const tabbables = this._collectTabbableInModal(modalRoot);
     if (tabbables.length) {
-      tabbables[0].focus();
+      this._focusModalTrapElement(tabbables[0]);
     } else {
       modalRoot.focus();
     }
@@ -1218,9 +1218,6 @@ export default class FormBuilderVisual extends LightningElement {
     }
 
     const tabbables = this._collectTabbableInModal(modalRoot);
-    const path =
-      typeof event.composedPath === "function" ? event.composedPath() : [];
-    const focusInside = path.includes(modalRoot);
 
     if (!tabbables.length) {
       event.preventDefault();
@@ -1228,30 +1225,111 @@ export default class FormBuilderVisual extends LightningElement {
       return;
     }
 
-    const first = tabbables[0];
-    const last = tabbables[tabbables.length - 1];
-    const active = document.activeElement;
+    event.preventDefault();
+    event.stopPropagation();
 
-    if (!focusInside) {
-      event.preventDefault();
-      (event.shiftKey ? last : first).focus();
-      return;
+    const path =
+      typeof event.composedPath === "function" ? event.composedPath() : [];
+    const deepest = this._deepestFocusedElement(document);
+
+    let idx = -1;
+    if (Array.isArray(path) && path.includes(modalRoot)) {
+      idx = this._modalTrapIndexFromComposedPath(tabbables, path);
+      if (
+        idx === -1 &&
+        deepest instanceof Element &&
+        tabbables.includes(deepest)
+      ) {
+        idx = tabbables.indexOf(deepest);
+      }
+    } else if (deepest instanceof Element) {
+      idx = tabbables.indexOf(deepest);
     }
 
-    let idx = tabbables.indexOf(active);
-    if (idx === -1) {
-      idx = tabbables.findIndex((t) => path.includes(t));
-    }
+    let nextIdx;
 
     if (event.shiftKey) {
-      if (idx <= 0) {
-        event.preventDefault();
-        last.focus();
-      }
-    } else if (idx === -1 || idx >= tabbables.length - 1) {
-      event.preventDefault();
-      first.focus();
+      nextIdx = idx <= 0 ? tabbables.length - 1 : idx - 1;
+    } else {
+      nextIdx = idx === -1 || idx >= tabbables.length - 1 ? 0 : idx + 1;
     }
+
+    this._focusModalTrapElement(tabbables[nextIdx]);
+  }
+
+  /**
+   * Programmatic `.focus()` on Lightning base-component hosts often does nothing useful without
+   * delegatesFocus — move focus onto the shadow trigger/control where possible.
+   */
+  _focusModalTrapElement(el) {
+    if (!(el instanceof HTMLElement)) {
+      return;
+    }
+    const target = this._lightningTrapFocusDelegate(el);
+    try {
+      (target ?? el).focus({ preventScroll: false });
+    } catch {
+      /* ignore cross-root focus quirks */
+    }
+  }
+
+  /**
+   * Prefer the actual keyboard focus surface inside Lightning base hosts (buttons, inputs, …).
+   * Order follows typical SLDS markup (primary trigger ahead of ancillary controls).
+   */
+  _lightningTrapFocusDelegate(host) {
+    if (!host || !(host instanceof HTMLElement)) {
+      return null;
+    }
+    if (!this._isModalTrapOpaqueLightningHost(host)) {
+      return null;
+    }
+    try {
+      const sr = host.shadowRoot;
+      if (!sr) {
+        return null;
+      }
+      const candidates = sr.querySelectorAll(
+        '[role="combobox"]:not([tabindex="-1"]),button[aria-haspopup="listbox"]:not([tabindex="-1"]):not([disabled]),button:not([tabindex="-1"]):not([disabled]),input:not([tabindex="-1"]):not([disabled]):not([type="hidden"]),textarea:not([tabindex="-1"]):not([disabled]),select:not([tabindex="-1"]):not([disabled])'
+      );
+      for (let i = 0; i < candidates.length; i++) {
+        const c = candidates[i];
+        if (
+          c instanceof HTMLElement &&
+          this._elementIsTabbable(c) &&
+          this._elementIsVisibleForModalTrap(c)
+        ) {
+          return c;
+        }
+      }
+    } catch {
+      /* Locker / sealed shadow — host.focus() fallback */
+      return null;
+    }
+    return null;
+  }
+
+  /** Walk shadow-root activeElement chains (`document.activeElement` is usually the enclosing host). */
+  _deepestFocusedElement(doc) {
+    let ae = doc?.activeElement;
+    while (ae?.shadowRoot?.activeElement) {
+      ae = ae.shadowRoot.activeElement;
+    }
+    return ae ?? null;
+  }
+
+  /**
+   * Pick the closest tabstop to the keyboard target by walking composedPath leaf → ancestors.
+   * This fixes shadow-DOM Lightning controls — `closest()` / host.contains(inner) won't cross shadows.
+   */
+  _modalTrapIndexFromComposedPath(tabbables, path) {
+    for (let i = 0; i < path.length; i++) {
+      const j = tabbables.indexOf(path[i]);
+      if (j !== -1) {
+        return j;
+      }
+    }
+    return -1;
   }
 
   _collectTabbableInModal(root) {
@@ -1277,7 +1355,82 @@ export default class FormBuilderVisual extends LightningElement {
       }
     };
     visit(root);
-    return out;
+    this._appendOpaqueLightningTabHosts(root, out);
+    return this._sortModalTabbablesByDocumentOrder(out);
+  }
+
+  /**
+   * Base Lightning controls expose real focus targets inside shadow DOM. Parents often cannot walk
+   * those trees (Locker), so the depth-first pass misses them and Tab wraps incorrectly (e.g. close → Save).
+   * Register the host as the tab stop when no inner control was already collected.
+   */
+  _appendOpaqueLightningTabHosts(root, out) {
+    const selector =
+      "lightning-button, lightning-combobox, lightning-input, lightning-textarea";
+    root.querySelectorAll(selector).forEach((host) => {
+      if (!(host instanceof HTMLElement)) {
+        return;
+      }
+      if (host.hasAttribute("disabled")) {
+        return;
+      }
+      if (!this._elementIsVisibleForModalTrap(host)) {
+        return;
+      }
+      const delegate = this._lightningTrapFocusDelegate(host);
+      const canonical = delegate ?? host;
+      if (
+        out.includes(canonical) ||
+        (delegate && out.includes(host)) ||
+        (!delegate &&
+          host.shadowRoot &&
+          this._lightningHostTabStopDuplicateInner(host.shadowRoot, out))
+      ) {
+        return;
+      }
+      out.push(canonical);
+    });
+  }
+
+  /**
+   * True when our tree walk already registered a nested focus stop for this Lightning host — but only
+   * for real triggers/fields. Listing `[role="listbox"]` etc. falsely skipped combobox hosts.
+   */
+  _lightningHostTabStopDuplicateInner(shadowRoot, out) {
+    try {
+      const inners = shadowRoot.querySelectorAll(
+        'button, input:not([type="hidden"]), textarea, select, a[href], [role="button"], [role="combobox"], [role="textbox"]'
+      );
+      for (let i = 0; i < inners.length; i++) {
+        if (out.includes(inners[i])) {
+          return true;
+        }
+      }
+    } catch {
+      return false;
+    }
+    return false;
+  }
+
+  _sortModalTabbablesByDocumentOrder(nodes) {
+    const uniq = [];
+    const seen = new Set();
+    nodes.forEach((n) => {
+      if (!seen.has(n)) {
+        seen.add(n);
+        uniq.push(n);
+      }
+    });
+    return uniq.sort((a, b) => {
+      const rel = a.compareDocumentPosition(b);
+      if (rel & Node.DOCUMENT_POSITION_FOLLOWING) {
+        return -1;
+      }
+      if (rel & Node.DOCUMENT_POSITION_PRECEDING) {
+        return 1;
+      }
+      return 0;
+    });
   }
 
   _elementIsTabbable(el) {
@@ -1285,6 +1438,9 @@ export default class FormBuilderVisual extends LightningElement {
       return false;
     }
     if (el.hasAttribute("disabled")) {
+      return false;
+    }
+    if (this._isModalTrapOpaqueLightningHost(el)) {
       return false;
     }
     const tiAttr = el.getAttribute("tabindex");
@@ -1315,7 +1471,24 @@ export default class FormBuilderVisual extends LightningElement {
     if (tiAttr !== null && el.tabIndex >= 0) {
       return true;
     }
+    if (tag.includes("-") && el.tabIndex >= 0) {
+      return true;
+    }
     return false;
+  }
+
+  /**
+   * Lightning base components often paint inside shadow DOM and report an empty geometry box on the
+   * host; excluding them breaks modal Tab lists (only buttons remain).
+   */
+  _isModalTrapOpaqueLightningHost(el) {
+    const tag = el.tagName.toLowerCase();
+    return (
+      tag === "lightning-input" ||
+      tag === "lightning-textarea" ||
+      tag === "lightning-combobox" ||
+      tag === "lightning-button"
+    );
   }
 
   _elementIsVisibleForModalTrap(el) {
@@ -1326,8 +1499,14 @@ export default class FormBuilderVisual extends LightningElement {
     if (style.visibility === "hidden" || style.display === "none") {
       return false;
     }
+    if (el.hasAttribute("hidden")) {
+      return false;
+    }
     const rects = el.getClientRects();
-    return !!(rects && rects.length);
+    if (rects && rects.length) {
+      return true;
+    }
+    return this._isModalTrapOpaqueLightningHost(el);
   }
 
   async initializeComponent() {
@@ -2712,6 +2891,63 @@ export default class FormBuilderVisual extends LightningElement {
       ...this.expandedSections,
       [section]: !this.expandedSections[section]
     };
+  }
+
+  handlePropertiesPanelKeydown(event) {
+    const panel = this.template.querySelector(".properties-panel");
+    if (!panel) {
+      return;
+    }
+    const rawTarget = event.target;
+    const insidePanel =
+      rawTarget &&
+      rawTarget.nodeType === Node.ELEMENT_NODE &&
+      (panel.contains(rawTarget) ||
+        (typeof rawTarget.composedPath === "function" &&
+          rawTarget.composedPath().includes(panel)));
+    if (!insidePanel) {
+      return;
+    }
+
+    const header =
+      rawTarget && typeof rawTarget.closest === "function"
+        ? rawTarget.closest(".prop-section-header")
+        : null;
+    if (!header || !panel.contains(header)) {
+      return;
+    }
+
+    const key = event.key;
+    if (key === "Enter" || key === " ") {
+      event.preventDefault();
+      const section = header.dataset.section;
+      if (section) {
+        this.expandedSections = {
+          ...this.expandedSections,
+          [section]: !this.expandedSections[section]
+        };
+      }
+      return;
+    }
+
+    if (key !== "ArrowDown" && key !== "ArrowUp") {
+      return;
+    }
+
+    event.preventDefault();
+    const headers = [
+      ...this.template.querySelectorAll(
+        ".properties-panel .prop-section-header"
+      )
+    ];
+    const idx = headers.indexOf(header);
+    if (idx === -1 || !headers.length) {
+      return;
+    }
+    const len = headers.length;
+    const delta = key === "ArrowDown" ? 1 : -1;
+    const nextIdx = (idx + delta + len) % len;
+    headers[nextIdx].focus();
   }
 
   // --- Dependency Update ---

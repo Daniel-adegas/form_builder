@@ -114,4 +114,16 @@ describe("c-form-renderer-layout-conversational", () => {
     expect(evt.composed).toBe(true);
     expect(evt.detail).toEqual(detail);
   });
+
+  it("disables submit on last step when readOnly (handleFinish parity)", () => {
+    const element = appendConversationalLayout({ readOnly: true });
+    const buttons = element.shadowRoot.querySelectorAll("lightning-button");
+    expect(buttons[1].disabled).toBe(true);
+  });
+
+  it("disables submit on last step when previewMode (handleFinish parity)", () => {
+    const element = appendConversationalLayout({ previewMode: true });
+    const buttons = element.shadowRoot.querySelectorAll("lightning-button");
+    expect(buttons[1].disabled).toBe(true);
+  });
 });

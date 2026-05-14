@@ -1,5 +1,4 @@
 import { LightningElement, api } from "lwc";
-import { ShowToastEvent } from "lightning/platformShowToastEvent";
 import { tableQuestionHasAnswer } from "c/formTableQuestionUtil";
 
 export default class FormRendererLayoutConversational extends LightningElement {
@@ -15,6 +14,7 @@ export default class FormRendererLayoutConversational extends LightningElement {
   activeIndex = 0;
   lastPageId;
   answerState = {};
+  inlineValidationMessage = "";
 
   renderedCallback() {
     const pageId = this.currentPage?.pageId;
@@ -22,6 +22,7 @@ export default class FormRendererLayoutConversational extends LightningElement {
     if (pageId && pageId !== this.lastPageId) {
       this.lastPageId = pageId;
       this.activeIndex = 0;
+      this.inlineValidationMessage = "";
     }
 
     if (this.activeIndex >= this.totalQuestions && this.totalQuestions > 0) {
@@ -91,31 +92,24 @@ export default class FormRendererLayoutConversational extends LightningElement {
     return this.isLastQuestion ? "Submit" : "OK";
   }
 
-  get suppressFinish() {
-    return (
-      this.readOnly === true ||
-      this.readOnly === "true" ||
-      this.previewMode === true ||
-      this.previewMode === "true"
-    );
+  /** Same normalization as formRenderer.isReadOnly (parent passes merged read-only; no _forceReadOnly here). */
+  get isReadOnly() {
+    return this.readOnly === true || this.readOnly === "true";
   }
 
   get isLastStepSubmitDisabled() {
-    return this.isLastQuestion && this.suppressFinish;
+    if (!this.isLastQuestion) return false;
+    if (this.isReadOnly) return true;
+    if (this.previewMode === true || this.previewMode === "true") return true;
+    return false;
   }
 
   get isActiveQuestionRequired() {
     return this.activeQuestion?.isRequired === true;
   }
 
-  showToast(title, message, variant = "info") {
-    this.dispatchEvent(
-      new ShowToastEvent({
-        title,
-        message,
-        variant
-      })
-    );
+  get hasInlineValidationError() {
+    return Boolean(this.inlineValidationMessage);
   }
 
   hasAnswer(question) {
@@ -148,26 +142,28 @@ export default class FormRendererLayoutConversational extends LightningElement {
   validateActiveQuestion() {
     const q = this.activeQuestion;
     if (!q) {
+      this.inlineValidationMessage = "";
       return true;
     }
 
     const questionEl = this.template.querySelector("c-form-question");
-    if (questionEl && typeof questionEl.reportInputValidity === "function") {
-      const ok = questionEl.reportInputValidity();
-      if (!ok) {
-        return false;
-      }
-    }
-
-    if (this.isActiveQuestionRequired && !this.hasAnswer(q)) {
-      this.showToast(
-        "Required question",
-        "Please answer this question before continuing.",
-        "error"
-      );
+    // Delegate regex, native constraints, word limits, and cross-field errors to formQuestion.
+    if (
+      questionEl &&
+      typeof questionEl.reportInputValidity === "function" &&
+      !questionEl.reportInputValidity()
+    ) {
+      this.inlineValidationMessage = "";
       return false;
     }
 
+    if (this.isActiveQuestionRequired && !this.hasAnswer(q)) {
+      this.inlineValidationMessage =
+        "Please answer this question before continuing.";
+      return false;
+    }
+
+    this.inlineValidationMessage = "";
     return true;
   }
 
@@ -177,7 +173,11 @@ export default class FormRendererLayoutConversational extends LightningElement {
     }
 
     if (this.isLastQuestion) {
-      if (this.suppressFinish) {
+      // Mirror formRenderer.handleFinish — never emit finish in read-only or preview.
+      if (this.isReadOnly) {
+        return;
+      }
+      if (this.previewMode === true || this.previewMode === "true") {
         return;
       }
 
@@ -195,6 +195,7 @@ export default class FormRendererLayoutConversational extends LightningElement {
 
   handlePrevious() {
     if (!this.isFirstQuestion) {
+      this.inlineValidationMessage = "";
       this.activeIndex -= 1;
     }
   }
@@ -204,6 +205,8 @@ export default class FormRendererLayoutConversational extends LightningElement {
     event.stopPropagation();
 
     const detail = event.detail || {};
+
+    this.inlineValidationMessage = "";
 
     this.answerState = {
       ...this.answerState,

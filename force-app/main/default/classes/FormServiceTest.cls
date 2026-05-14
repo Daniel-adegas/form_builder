@@ -179,7 +179,7 @@ private class FormServiceTest {
     );
     Assert.isNotNull(wrapper.pages, 'Pages should not be null');
     Assert.areEqual(
-      'Classic',
+      'classic',
       wrapper.layoutMode,
       'Renderer layout should be classic'
     );

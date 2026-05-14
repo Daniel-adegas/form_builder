@@ -21,6 +21,10 @@ export default class FormRendererLayoutWizard extends LightningElement {
   _answeredMemo;
   _hasRealValueCache;
 
+  /** Cached sidebar shape; invalidated when progressSteps/formStructure/hiddenElements refs change. */
+  _sidebarStaticDeps = null;
+  _sidebarStaticPages = null;
+
   _ensureMemoCaches() {
     if (!this._answeredMemo) {
       this._answeredMemo = new Map();
@@ -40,6 +44,57 @@ export default class FormRendererLayoutWizard extends LightningElement {
     }
 
     return questions;
+  }
+
+  _syncSidebarStructure() {
+    const progressSteps = this.progressSteps;
+    const formStructure = this.formStructure;
+    const hiddenElements = this.hiddenElements;
+
+    if (
+      this._sidebarStaticDeps &&
+      this._sidebarStaticDeps.progressSteps === progressSteps &&
+      this._sidebarStaticDeps.formStructure === formStructure &&
+      this._sidebarStaticDeps.hiddenElements === hiddenElements &&
+      this._sidebarStaticPages
+    ) {
+      return;
+    }
+
+    const pages = [];
+
+    for (let index = 0; index < (progressSteps || []).length; index++) {
+      const step = progressSteps[index];
+      const page = (formStructure || []).find((p) => p.pageId === step.pageId);
+      const questionRefs = [];
+
+      for (const section of page?.sections || []) {
+        if (hiddenElements?.[section.sectionId]) {
+          continue;
+        }
+
+        for (const question of section.questions || []) {
+          if (hiddenElements?.[question.questionId]) {
+            continue;
+          }
+
+          questionRefs.push({
+            questionId: question.questionId,
+            questionText: question.questionText || question.questionName,
+            baseQuestion: question
+          });
+        }
+      }
+
+      pages.push({ step, index, questionRefs });
+    }
+
+    this._sidebarStaticPages = pages;
+    this._sidebarStaticDeps = {
+      progressSteps,
+      formStructure,
+      hiddenElements
+    };
   }
 
   get answeredQuestionCount() {
@@ -63,47 +118,35 @@ export default class FormRendererLayoutWizard extends LightningElement {
   }
 
   get sidebarPages() {
-    return (this.progressSteps || []).map((step, index) => {
-      const page = (this.formStructure || []).find(
-        (p) => p.pageId === step.pageId
-      );
-      const questions = [];
+    this._syncSidebarStructure();
 
-      for (const section of page?.sections || []) {
-        if (this.hiddenElements?.[section.sectionId]) {
-          continue;
-        }
+    const liveByQuestionId = new Map();
+    for (const question of this.currentQuestions) {
+      liveByQuestionId.set(question.questionId, question);
+    }
 
-        for (const question of section.questions || []) {
-          if (this.hiddenElements?.[question.questionId]) {
-            continue;
-          }
+    const activeId = this.activeQuestionId;
 
-          const liveQuestion = this.getLiveQuestion(question.questionId);
-          const questionForStatus = liveQuestion || question;
+    return this._sidebarStaticPages.map(
+      ({ step, index: stepIndex, questionRefs }) => ({
+        ...step,
+        index: stepIndex,
+        questions: questionRefs.map((ref) => {
+          const questionForStatus =
+            liveByQuestionId.get(ref.questionId) || ref.baseQuestion;
 
-          questions.push({
-            questionId: question.questionId,
-            questionText: question.questionText || question.questionName,
+          return {
+            questionId: ref.questionId,
+            questionText: ref.questionText,
             itemClass:
-              question.questionId === this.activeQuestionId
+              ref.questionId === activeId
                 ? "question-nav-item question-nav-active"
                 : "question-nav-item",
             isAnswered: this.isAnswered(questionForStatus)
-          });
-        }
-      }
-
-      return {
-        ...step,
-        index,
-        questions
-      };
-    });
-  }
-
-  getLiveQuestion(questionId) {
-    return this.currentQuestions.find((q) => q.questionId === questionId);
+          };
+        })
+      })
+    );
   }
 
   isAnswered(question) {

@@ -243,6 +243,7 @@ export default class FormRenderer extends LightningElement {
               questionLayoutClass: `${colBase} question-row`,
               isRequired:
                 !this.isReadOnly &&
+                q.isDisabled !== true &&
                 (q.isRequired === true ||
                   this.requiredByDependency[q.questionId] === true),
               questionText:
@@ -1025,7 +1026,9 @@ export default class FormRenderer extends LightningElement {
               }
             }
           }
-          const isReq = q.isRequired || this.requiredByDependency[q.questionId];
+          const isReq =
+            q.isDisabled !== true &&
+            (q.isRequired || this.requiredByDependency[q.questionId]);
           if (!isReq) continue;
           const hasValue =
             q.questionType === "Table"
