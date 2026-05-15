@@ -63,6 +63,71 @@ describe("c-form-renderer-layout-conversational", () => {
     );
   });
 
+  it("dispatches nextpage (not finish) on last question when another page remains", () => {
+    const element = appendConversationalLayout({ isLastPage: false });
+    const formQuestion = element.shadowRoot.querySelector("c-form-question");
+    formQuestion.reportInputValidity = jest.fn().mockReturnValue(true);
+
+    const nextListener = jest.fn();
+    const finishListener = jest.fn();
+    element.addEventListener("nextpage", nextListener);
+    element.addEventListener("finish", finishListener);
+
+    const buttons = element.shadowRoot.querySelectorAll("lightning-button");
+    expect(buttons[1].label).toBe("Next");
+    buttons[1].click();
+
+    expect(nextListener).toHaveBeenCalledTimes(1);
+    expect(finishListener).not.toHaveBeenCalled();
+  });
+
+  it("shows Next label on last question of page when not isLastPage", () => {
+    const element = appendConversationalLayout({ isLastPage: false });
+    const buttons = element.shadowRoot.querySelectorAll("lightning-button");
+    expect(buttons[1].label).toBe("Next");
+  });
+
+  it("dispatches finish from last question when isLastPage", () => {
+    const element = appendConversationalLayout({
+      isLastPage: true,
+      readOnly: false,
+      previewMode: false
+    });
+    const formQuestion = element.shadowRoot.querySelector("c-form-question");
+    formQuestion.reportInputValidity = jest.fn().mockReturnValue(true);
+
+    const finishListener = jest.fn();
+    element.addEventListener("finish", finishListener);
+
+    const buttons = element.shadowRoot.querySelectorAll("lightning-button");
+    expect(buttons[1].label).toBe("Submit");
+    buttons[1].click();
+
+    expect(finishListener).toHaveBeenCalledTimes(1);
+  });
+
+  it("dispatches previouspage from first question when not isFirstPage", () => {
+    const element = appendConversationalLayout({
+      isFirstPage: false,
+      currentSections: buildSampleSections()
+    });
+
+    const prevListener = jest.fn();
+    element.addEventListener("previouspage", prevListener);
+
+    const buttons = element.shadowRoot.querySelectorAll("lightning-button");
+    expect(buttons[0].disabled).toBe(false);
+    buttons[0].click();
+
+    expect(prevListener).toHaveBeenCalledTimes(1);
+  });
+
+  it("keeps Previous disabled on first question when isFirstPage", () => {
+    const element = appendConversationalLayout({ isFirstPage: true });
+    const buttons = element.shadowRoot.querySelectorAll("lightning-button");
+    expect(buttons[0].disabled).toBe(true);
+  });
+
   it("renders progress shell, active question host, and navigation buttons", () => {
     const element = appendConversationalLayout();
 

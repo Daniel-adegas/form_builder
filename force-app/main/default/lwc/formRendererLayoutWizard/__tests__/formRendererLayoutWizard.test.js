@@ -2,23 +2,24 @@ import { createElement } from "@lwc/engine-dom";
 import FormRendererLayoutWizard from "c/formRendererLayoutWizard";
 
 function buildSampleSections(options = {}) {
-  const { withQuestions = true, bonus = false } = options;
+  const { withQuestions = true, bonus = false, questionsOverride } = options;
+  const defaultQuestions = [
+    {
+      questionId: "q-text-1",
+      questionType: "Text",
+      isRequired: false,
+      value: "",
+      textValue: "",
+      questionLayoutClass: "slds-col slds-size_1-of-1 question-row"
+    }
+  ];
   return [
     {
       sectionId: "sec-1",
       translatedName: "Profile",
       bonus,
       visibleQuestions: withQuestions
-        ? [
-            {
-              questionId: "q-text-1",
-              questionType: "Text",
-              isRequired: false,
-              value: "",
-              textValue: "",
-              questionLayoutClass: "slds-col slds-size_1-of-1 question-row"
-            }
-          ]
+        ? questionsOverride || defaultQuestions
         : []
     }
   ];
@@ -132,6 +133,34 @@ describe("c-form-renderer-layout-wizard", () => {
     );
     expect(navItem).not.toBeNull();
     expect(navItem.textContent.trim()).toBe("Sample question");
+  });
+
+  it("shows (Disabled) in sidebar when question has isDisabled true", () => {
+    const formStructure = buildFormStructure();
+    formStructure[0].sections[0].questions[0].isDisabled = true;
+
+    const element = appendWizardLayout({
+      currentSections: buildSampleSections({
+        questionsOverride: [
+          {
+            questionId: "q-text-1",
+            questionType: "Text",
+            isRequired: false,
+            isDisabled: true,
+            value: "",
+            textValue: "",
+            questionLayoutClass: "slds-col slds-size_1-of-1 question-row"
+          }
+        ]
+      }),
+      formStructure
+    });
+
+    const disabledLabel = element.shadowRoot.querySelector(
+      ".disabled-sidebar-text"
+    );
+    expect(disabledLabel).not.toBeNull();
+    expect(disabledLabel.textContent.trim()).toBe("(Disabled)");
   });
 
   it("shows empty section message when a section has no visible questions", () => {

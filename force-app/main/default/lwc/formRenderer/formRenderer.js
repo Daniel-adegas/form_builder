@@ -768,6 +768,22 @@ export default class FormRenderer extends LightningElement {
     }
   }
 
+  /** Conversational layout: advance to next page after the last question on the current page. */
+  handleConversationalNextPage() {
+    if (!this.isLastPage) {
+      this.currentStep++;
+      this._scheduleAutoSave();
+    }
+  }
+
+  /** Conversational layout: go back to the previous page from the first question on the current page. */
+  handleConversationalPreviousPage() {
+    if (!this.isFirstPage) {
+      this.currentStep--;
+      this._scheduleAutoSave();
+    }
+  }
+
   handleStepClick(event) {
     const rawIdx = event?.detail?.index ?? event?.currentTarget?.dataset?.index;
     const idx = parseInt(rawIdx, 10);
@@ -1032,7 +1048,7 @@ export default class FormRenderer extends LightningElement {
           if (!isReq) continue;
           const hasValue =
             q.questionType === "Table"
-              ? tableQuestionHasAnswer(q.textValue)
+              ? tableQuestionHasAnswer(q.textValue, q.tableColumns)
               : (q.value != null && q.value !== "") ||
                 (q.textValue != null && q.textValue !== "");
           if (!hasValue) {

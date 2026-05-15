@@ -190,12 +190,16 @@
           <c-form-renderer-layout-conversational
             current-page={currentPage}
             current-page-name={currentPageName}
-            current-page-description={currentFormDescription}
+            current-page-description={currentPageDescription}
             current-sections={currentSections}
             read-only={isReadOnly}
             preview-mode={previewMode}
+            is-last-page={isLastPage}
+            is-first-page={isFirstPage}
             feature-settings={featureSettings}
             onvaluechange={handleResponse}
+            onnextpage={handleConversationalNextPage}
+            onpreviouspage={handleConversationalPreviousPage}
             onfinish={handleFinish}
           ></c-form-renderer-layout-conversational>
         </template>
@@ -203,7 +207,7 @@
           <c-form-renderer-layout-card-based
             current-page={currentPage}
             current-page-name={currentPageName}
-            current-page-description={currentFormDescription}
+            current-page-description={currentPageDescription}
             current-sections={currentSections}
             read-only={isReadOnly}
             feature-settings={featureSettings}
@@ -216,7 +220,7 @@
             hidden-elements={hiddenElements}
             current-page={currentPage}
             current-page-name={currentPageName}
-            current-page-description={currentFormDescription}
+            current-page-description={currentPageDescription}
             current-sections={currentSections}
             progress-steps={progressSteps}
             current-step={currentStep}

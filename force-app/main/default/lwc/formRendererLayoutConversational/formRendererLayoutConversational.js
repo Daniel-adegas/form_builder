@@ -9,6 +9,16 @@ export default class FormRendererLayoutConversational extends LightningElement {
   @api readOnly = false;
   /** When true, conversational flow must not emit finish (e.g. builder preview). */
   @api previewMode = false;
+  /**
+   * Set false when more pages follow so the last question advances the form
+   * instead of emitting finish. Omitted/undefined = last page (single-page).
+   */
+  @api isLastPage;
+  /**
+   * Set false when prior pages exist so Previous on the first question of this
+   * page goes back. Omitted/undefined = first page of form.
+   */
+  @api isFirstPage;
   @api featureSettings;
 
   activeIndex = 0;
@@ -88,8 +98,22 @@ export default class FormRendererLayoutConversational extends LightningElement {
     return this.activeIndex >= this.totalQuestions - 1;
   }
 
+  get _effectiveIsLastPage() {
+    return !(this.isLastPage === false || this.isLastPage === "false");
+  }
+
+  get _effectiveIsFirstPage() {
+    return !(this.isFirstPage === false || this.isFirstPage === "false");
+  }
+
+  /** True when this step is the real form submit (last question on the last page). */
+  get isSubmitStep() {
+    return this.isLastQuestion && this._effectiveIsLastPage;
+  }
+
   get nextLabel() {
-    return this.isLastQuestion ? "Submit" : "OK";
+    if (!this.isLastQuestion) return "OK";
+    return this._effectiveIsLastPage ? "Submit" : "Next";
   }
 
   /** Same normalization as formRenderer.isReadOnly (parent passes merged read-only; no _forceReadOnly here). */
@@ -98,10 +122,14 @@ export default class FormRendererLayoutConversational extends LightningElement {
   }
 
   get isLastStepSubmitDisabled() {
-    if (!this.isLastQuestion) return false;
+    if (!this.isSubmitStep) return false;
     if (this.isReadOnly) return true;
     if (this.previewMode === true || this.previewMode === "true") return true;
     return false;
+  }
+
+  get isPreviousDisabled() {
+    return this.isFirstQuestion && this._effectiveIsFirstPage;
   }
 
   get isActiveQuestionRequired() {
@@ -121,7 +149,7 @@ export default class FormRendererLayoutConversational extends LightningElement {
     const textValue = liveAnswer?.textValue ?? question.textValue;
 
     if (question.questionType === "Table") {
-      return tableQuestionHasAnswer(textValue);
+      return tableQuestionHasAnswer(textValue, question.tableColumns);
     }
 
     return this.hasRealValue(value) || this.hasRealValue(textValue);
@@ -173,6 +201,16 @@ export default class FormRendererLayoutConversational extends LightningElement {
     }
 
     if (this.isLastQuestion) {
+      if (!this._effectiveIsLastPage) {
+        this.dispatchEvent(
+          new CustomEvent("nextpage", {
+            bubbles: true,
+            composed: true
+          })
+        );
+        return;
+      }
+
       // Mirror formRenderer.handleFinish — never emit finish in read-only or preview.
       if (this.isReadOnly) {
         return;
@@ -197,6 +235,16 @@ export default class FormRendererLayoutConversational extends LightningElement {
     if (!this.isFirstQuestion) {
       this.inlineValidationMessage = "";
       this.activeIndex -= 1;
+      return;
+    }
+
+    if (!this._effectiveIsFirstPage) {
+      this.dispatchEvent(
+        new CustomEvent("previouspage", {
+          bubbles: true,
+          composed: true
+        })
+      );
     }
   }
 

@@ -46,6 +46,11 @@ export default class FormRendererLayoutWizard extends LightningElement {
     return questions;
   }
 
+  /** Questions that count toward wizard progress (disabled fields are read-only / not user-answerable). */
+  get progressQuestions() {
+    return this.currentQuestions.filter((q) => q.isDisabled !== true);
+  }
+
   _syncSidebarStructure() {
     const progressSteps = this.progressSteps;
     const formStructure = this.formStructure;
@@ -98,11 +103,11 @@ export default class FormRendererLayoutWizard extends LightningElement {
   }
 
   get answeredQuestionCount() {
-    return this.currentQuestions.filter((q) => this.isAnswered(q)).length;
+    return this.progressQuestions.filter((q) => this.isAnswered(q)).length;
   }
 
   get totalQuestionCount() {
-    return this.currentQuestions.length;
+    return this.progressQuestions.length;
   }
 
   get questionProgressText() {
@@ -142,6 +147,7 @@ export default class FormRendererLayoutWizard extends LightningElement {
               ref.questionId === activeId
                 ? "question-nav-item question-nav-active"
                 : "question-nav-item",
+            isDisabled: questionForStatus?.isDisabled === true,
             isAnswered: this.isAnswered(questionForStatus)
           };
         })
@@ -161,11 +167,14 @@ export default class FormRendererLayoutWizard extends LightningElement {
     const liveAnswer = this.answerState[question.questionId];
     const cacheKey =
       `${question.questionId}\u0000` +
+      `${question.isDisabled === true}\u0000` +
+      `${question.isRequired === true}\u0000` +
       `${JSON.stringify(liveAnswer?.value)}\u0000` +
       `${JSON.stringify(liveAnswer?.textValue)}\u0000` +
       `${JSON.stringify(question.value)}\u0000` +
       `${JSON.stringify(question.textValue)}\u0000` +
-      `${question.questionType || ""}`;
+      `${question.questionType || ""}\u0000` +
+      `${JSON.stringify(question.tableColumns ?? null)}`;
     this._ensureMemoCaches();
     if (this._answeredMemo.has(cacheKey)) {
       return this._answeredMemo.get(cacheKey);
@@ -187,7 +196,7 @@ export default class FormRendererLayoutWizard extends LightningElement {
   ) {
     if (question.questionType === "Table") {
       const textValue = liveAnswer?.textValue ?? question.textValue;
-      return tableQuestionHasAnswer(textValue);
+      return tableQuestionHasAnswer(textValue, question.tableColumns);
     }
 
     if (liveAnswer) {
