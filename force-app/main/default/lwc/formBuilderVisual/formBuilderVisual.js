@@ -94,6 +94,9 @@ const TOOLBOX_ITEMS = [
   }
 ];
 
+const CONVERSATIONAL_SINGLE_PAGE_HELP =
+  "Conversational forms support only single-page forms.";
+
 const REPOSITORY_TOOLBOX_ITEMS = [
   {
     key: "question-repository",
@@ -205,12 +208,69 @@ export default class FormBuilderVisual extends LightningElement {
     return !this.repositoryMode;
   }
 
-  get formLayoutMode() {
+  /** Persisted layout on the form record (not config-modal draft state). */
+  get savedFormLayoutMode() {
     return (
-      this.configLayoutMode ||
-      this.formStructure?.form?.C_Layout_Mode__c ||
-      "classic"
+      this.formStructure?.form?.C_Layout_Mode__c || "classic"
+    ).toLowerCase();
+  }
+
+  get formLayoutMode() {
+    if (this.showConfigModal) {
+      return this.configLayoutMode || "classic";
+    }
+    return this.formStructure?.form?.C_Layout_Mode__c || "classic";
+  }
+
+  get formPageCount() {
+    return (this.formStructure?.pages || []).length;
+  }
+
+  get isConversationalLayoutAllowed() {
+    return this.formPageCount <= 1;
+  }
+
+  get isConversationalLayoutSelected() {
+    return this.savedFormLayoutMode === "conversational";
+  }
+
+  /** True when conversational is saved and the form already has its single allowed page. */
+  get isConversationalPageAddBlocked() {
+    return this.isConversationalLayoutSelected && this.formPageCount >= 1;
+  }
+
+  /** Saved layout is conversational while the form has multiple pages. */
+  get isConversationalLayoutInvalid() {
+    return (
+      this.isConversationalLayoutSelected && !this.isConversationalLayoutAllowed
     );
+  }
+
+  /** Config modal: pending layout selection is conversational on a multi-page form. */
+  get isPendingConversationalLayoutInvalid() {
+    return (
+      (this.configLayoutMode || "").toLowerCase() === "conversational" &&
+      !this.isConversationalLayoutAllowed
+    );
+  }
+
+  get isConfigSaveDisabled() {
+    return this.isPendingConversationalLayoutInvalid;
+  }
+
+  get layoutModeFieldLevelHelp() {
+    if (!this.isConversationalLayoutAllowed) {
+      return CONVERSATIONAL_SINGLE_PAGE_HELP;
+    }
+    return "";
+  }
+
+  get conversationalLayoutDisabledMessage() {
+    return CONVERSATIONAL_SINGLE_PAGE_HELP;
+  }
+
+  get isPropertySaveDisabled() {
+    return this.isFormProperties && this.isConversationalLayoutInvalid;
   }
 
   /** True when editing a library section or question from Asset Repository (narrow UI). */
@@ -1056,7 +1116,17 @@ export default class FormBuilderVisual extends LightningElement {
         (i) => !stripKeys.has(i.key) && i.dragType !== "sectionRepository"
       );
     }
-    return items;
+    return items.map((item) => {
+      const pageBlocked =
+        item.dragType === "page" && this.isConversationalPageAddBlocked;
+      return {
+        ...item,
+        isPageDragEnabled: !pageBlocked,
+        itemClass: pageBlocked
+          ? "toolbox-item toolbox-item_disabled"
+          : "toolbox-item"
+      };
+    });
   }
 
   get formDefaultLanguage() {
@@ -1559,6 +1629,10 @@ export default class FormBuilderVisual extends LightningElement {
       this.formStructure = await getFullFormStructure({
         formId: this.selectedFormId
       });
+      if (!this.showConfigModal) {
+        this.configLayoutMode =
+          this.formStructure?.form?.C_Layout_Mode__c || "classic";
+      }
       if (this.showFieldMapping) {
         this.loadFieldMappings();
       }
@@ -1680,6 +1754,10 @@ export default class FormBuilderVisual extends LightningElement {
 
   handleToolboxDragStart(event) {
     const dragType = event.currentTarget.dataset.dragtype;
+    if (dragType === "page" && this.isConversationalPageAddBlocked) {
+      event.preventDefault();
+      return;
+    }
     const questionType = event.currentTarget.dataset.questiontype || "";
     event.dataTransfer.setData(
       "text/plain",
@@ -1992,6 +2070,10 @@ export default class FormBuilderVisual extends LightningElement {
   }
 
   async createNewPage(categoryId, position) {
+    if (this._rejectConversationalAdditionalPage()) {
+      return;
+    }
+
     const existingCategoryId = categoryId || null;
     this.isLoading = true;
     try {
@@ -2246,9 +2328,12 @@ export default class FormBuilderVisual extends LightningElement {
 
   async handlePropertySave() {
     if (!this.selectedElement || !this.selectedElementType) return;
+    const type = this.selectedElementType;
+    if (type === "form" && this._rejectConversationalFormSave()) {
+      return;
+    }
     this.isLoading = true;
     try {
-      const type = this.selectedElementType;
       const el = this.selectedElement;
 
       if (type === "form") {
@@ -2449,9 +2534,14 @@ export default class FormBuilderVisual extends LightningElement {
   }
 
   get layoutModeOptions() {
+    const conversationalDisabled = !this.isConversationalLayoutAllowed;
     return [
       { label: "Classic", value: "classic" },
-      { label: "Conversational", value: "conversational" },
+      {
+        label: "Conversational",
+        value: "conversational",
+        disabled: conversationalDisabled
+      },
       { label: "Wizard", value: "wizard" },
       { label: "Card Based", value: "cardBased" }
     ];
@@ -2600,6 +2690,11 @@ export default class FormBuilderVisual extends LightningElement {
 
   async handleSaveConfig() {
     if (!this.formStructure?.form) return;
+
+    if (this.isConfigSaveDisabled) {
+      this.showError(CONVERSATIONAL_SINGLE_PAGE_HELP);
+      return;
+    }
 
     this.isLoading = true;
     try {
@@ -2967,6 +3062,26 @@ export default class FormBuilderVisual extends LightningElement {
   }
 
   // --- Utilities ---
+
+  /** Conversational layout cannot be saved while the form has more than one page. */
+  _rejectConversationalFormSave() {
+    if (!this.isConversationalLayoutInvalid) {
+      return false;
+    }
+    this.showError(CONVERSATIONAL_SINGLE_PAGE_HELP);
+    return true;
+  }
+
+  /** Block adding another page while conversational layout is selected. */
+  _rejectConversationalAdditionalPage() {
+    if (!this.isConversationalPageAddBlocked) {
+      return false;
+    }
+    this.showError(
+      `Cannot add another page while Conversational layout is selected. ${CONVERSATIONAL_SINGLE_PAGE_HELP}`
+    );
+    return true;
+  }
 
   handleTargetBuilderToast(event) {
     const { title, message, variant } = event.detail;

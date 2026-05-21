@@ -1,110 +1,125 @@
 <template>
-    <template if:true={row.isCategoryRow}>
-        <div
-            class={categoryHeaderClass}
-            data-elementtype="category"
-            data-id={row.Id}
-            onclick={handleElementClick}
-            draggable="true"
-            data-itemtype="category"
-            ondragstart={handleCategoryDragStart}
-            ondragend={handleDragEnd}
-        >
-            <span class="drag-handle-area">
-                <span class="drag-handle">&#8942;&#8942;</span>
-                <lightning-button-icon
-                    icon-name={row.collapseIcon}
-                    alternative-text="Toggle"
-                    variant="bare-inverse"
-                    size="small"
-                    data-id={row.Id}
-                    onclick={handleToggleCollapse}
-                    class="collapse-toggle"
-                ></lightning-button-icon>
-                <lightning-icon icon-name={row.iconName} size="x-small" variant="inverse" class="slds-m-right_x-small"></lightning-icon>
-                {row.Name}
-                <template if:true={row.C_Description__c}>
-                    <span class="category-desc-badge">{row.C_Description__c}</span>
-                </template>
-                <template if:true={row.isDependent}>
-                    <span class="type-badge dep-badge">Conditional</span>
-                </template>
-            </span>
-            <template if:false={suppressRepositoryChrome}>
-                <lightning-button-icon
-                    icon-name="utility:add"
-                    alternative-text="Add Page"
-                    variant="inverse"
-                    size="small"
-                    data-categoryid={row.Id}
-                    onclick={handleQuickAddPage}
-                ></lightning-button-icon>
-            </template>
-        </div>
-    </template>
-
-    <template if:true={row.isRootPagesRow}>
-        <template if:false={suppressRepositoryChrome}>
-            <div class="canvas-root-toolbar slds-grid slds-grid_align-spread slds-p-bottom_x-small slds-p-horizontal_small">
-                <span class="slds-text-body_small slds-text-color_weak">Pages without a category</span>
-                <lightning-button-icon
-                    icon-name="utility:add"
-                    alternative-text="Add Page"
-                    variant="border-filled"
-                    size="small"
-                    onclick={handleQuickAddPage}
-                ></lightning-button-icon>
-            </div>
+  <template if:true={row.isCategoryRow}>
+    <div
+      class={categoryHeaderClass}
+      data-elementtype="category"
+      data-id={row.Id}
+      onclick={handleElementClick}
+      draggable="true"
+      data-itemtype="category"
+      ondragstart={handleCategoryDragStart}
+      ondragend={handleDragEnd}
+    >
+      <span class="drag-handle-area">
+        <span class="drag-handle">&#8942;&#8942;</span>
+        <lightning-button-icon
+          icon-name={row.collapseIcon}
+          alternative-text="Toggle"
+          variant="bare-inverse"
+          size="small"
+          data-id={row.Id}
+          onclick={handleToggleCollapse}
+          class="collapse-toggle"
+        ></lightning-button-icon>
+        <lightning-icon
+          icon-name={row.iconName}
+          size="x-small"
+          variant="inverse"
+          class="slds-m-right_x-small"
+        ></lightning-icon>
+        {row.Name}
+        <template if:true={row.C_Description__c}>
+          <span class="category-desc-badge">{row.C_Description__c}</span>
         </template>
+        <template if:true={row.isDependent}>
+          <span class="type-badge dep-badge">Conditional</span>
+        </template>
+      </span>
+      <template if:false={suppressRepositoryChrome}>
+        <lightning-button-icon
+          icon-name="utility:add"
+          alternative-text="Add Page"
+          variant="inverse"
+          size="small"
+          data-categoryid={row.Id}
+          disabled={pageAddDisabled}
+          title={pageAddDisabledTitle}
+          onclick={handleQuickAddPage}
+        ></lightning-button-icon>
+      </template>
+    </div>
+  </template>
+
+  <template if:true={row.isRootPagesRow}>
+    <template if:false={suppressRepositoryChrome}>
+      <div
+        class="canvas-root-toolbar slds-grid slds-grid_align-spread slds-p-bottom_x-small slds-p-horizontal_small"
+      >
+        <span class="slds-text-body_small slds-text-color_weak"
+          >Pages without a category</span
+        >
+        <lightning-button-icon
+          icon-name="utility:add"
+          alternative-text="Add Page"
+          variant="border-filled"
+          size="small"
+          disabled={pageAddDisabled}
+          title={pageAddDisabledTitle}
+          onclick={handleQuickAddPage}
+        ></lightning-button-icon>
+      </div>
     </template>
+  </template>
 
-    <template if:false={row.hidePageBody}>
-        <div class="canvas-category-body">
-            <template if:false={suppressRepositoryChrome}>
-                <c-form-builder-drop-zone
-                    dropzone={row.pageDropzone}
-                    accepts="page"
-                    parent-id={row.pageDropParentId}
-                    position="0"
-                    is-dragging={isDragging}
-                    drag-item-type={dragItemType}
-                    drag-type={dragType}
-                    variant="line"
-                    drag-label="Drop page here"
-                ></c-form-builder-drop-zone>
-            </template>
+  <template if:false={row.hidePageBody}>
+    <div class="canvas-category-body">
+      <template if:false={suppressRepositoryChrome}>
+        <c-form-builder-drop-zone
+          dropzone={row.pageDropzone}
+          accepts="page"
+          parent-id={row.pageDropParentId}
+          position="0"
+          is-dragging={isDragging}
+          drag-item-type={dragItemType}
+          drag-type={dragType}
+          variant="line"
+          drag-label="Drop page here"
+        ></c-form-builder-drop-zone>
+      </template>
 
-            <template if:true={row.hasPages}>
-                <template for:each={row.pages} for:item="page">
-                    <c-form-builder-page-card
-                        key={page.Id}
-                        page={page}
-                        page-dropzone={row.pageDropzone}
-                        page-drop-parent-id={row.pageDropParentId}
-                        is-dragging={isDragging}
-                        drag-item-type={dragItemType}
-                        drag-type={dragType}
-                        dragging-source-id={draggingSourceId}
-                        show-scoring={showScoring}
-                        suppress-repository-chrome={suppressRepositoryChrome}
-                    ></c-form-builder-page-card>
-                </template>
-            </template>
+      <template if:true={row.hasPages}>
+        <template for:each={row.pages} for:item="page">
+          <c-form-builder-page-card
+            key={page.Id}
+            page={page}
+            page-dropzone={row.pageDropzone}
+            page-drop-parent-id={row.pageDropParentId}
+            is-dragging={isDragging}
+            drag-item-type={dragItemType}
+            drag-type={dragType}
+            dragging-source-id={draggingSourceId}
+            show-scoring={showScoring}
+            suppress-repository-chrome={suppressRepositoryChrome}
+          ></c-form-builder-page-card>
+        </template>
+      </template>
 
-            <template if:false={row.hasPages}>
-                <c-form-builder-drop-zone
-                    dropzone={row.pageDropzone}
-                    accepts="page"
-                    parent-id={row.pageDropParentId}
-                    position="0"
-                    is-dragging={isDragging}
-                    drag-item-type={dragItemType}
-                    drag-type={dragType}
-                    variant="empty"
-                >
-                    <span class="slds-text-body_small slds-text-color_weak">Drag a page here</span>
-                </c-form-builder-drop-zone>
-            </template>
-        </div>
-    </template>
+      <template if:false={row.hasPages}>
+        <c-form-builder-drop-zone
+          dropzone={row.pageDropzone}
+          accepts="page"
+          parent-id={row.pageDropParentId}
+          position="0"
+          is-dragging={isDragging}
+          drag-item-type={dragItemType}
+          drag-type={dragType}
+          variant="empty"
+        >
+          <span class="slds-text-body_small slds-text-color_weak"
+            >Drag a page here</span
+          >
+        </c-form-builder-drop-zone>
+      </template>
+    </div>
+  </template>
 </template>

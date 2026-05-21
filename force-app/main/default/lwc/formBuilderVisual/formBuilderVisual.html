@@ -178,8 +178,8 @@
           <template for:each={toolboxItems} for:item="item">
             <div
               key={item.key}
-              class="toolbox-item"
-              draggable="true"
+              class={item.itemClass}
+              draggable={item.isPageDragEnabled}
               data-dragtype={item.dragType}
               data-questiontype={item.questionType}
               ondragstart={handleToolboxDragStart}
@@ -421,6 +421,8 @@
                   dragging-source-id={draggingSourceId}
                   show-scoring={showScoring}
                   suppress-repository-chrome={row.repositorySuppressCanvasChrome}
+                  page-add-disabled={isConversationalPageAddBlocked}
+                  page-add-disabled-title={conversationalLayoutDisabledMessage}
                 ></c-form-builder-category-card>
                 <template if:false={repositoryAssetEditUi}>
                   <c-form-builder-drop-zone
@@ -469,6 +471,8 @@
                     variant="brand"
                     icon-name="utility:add"
                     class="slds-m-right_small"
+                    disabled={isConversationalPageAddBlocked}
+                    title={conversationalLayoutDisabledMessage}
                     onclick={handleQuickAddPage}
                   ></lightning-button>
                   <lightning-button
@@ -1852,12 +1856,21 @@
             </template>
           </template>
 
+          <template if:true={isPropertySaveDisabled}>
+            <p
+              class="slds-text-color_error slds-text-body_small slds-m-top_small"
+              role="status"
+            >
+              {conversationalLayoutDisabledMessage}
+            </p>
+          </template>
           <div class="slds-m-top_medium slds-grid slds-gutters_x-small">
             <div class="slds-col">
               <lightning-button
                 label="Save"
                 variant="brand"
                 onclick={handlePropertySave}
+                disabled={isPropertySaveDisabled}
                 class="slds-full-width"
               ></lightning-button>
             </div>
@@ -2060,10 +2073,19 @@
               label="Layout Mode"
               value={formLayoutMode}
               options={layoutModeOptions}
+              field-level-help={layoutModeFieldLevelHelp}
               onchange={handleConfigLayoutModeChange}
               class="slds-m-bottom_small"
             >
             </lightning-combobox>
+            <template if:true={isPendingConversationalLayoutInvalid}>
+              <p
+                class="slds-text-color_error slds-text-body_small slds-m-bottom_small"
+                role="status"
+              >
+                {conversationalLayoutDisabledMessage}
+              </p>
+            </template>
           </div>
 
           <footer class="slds-modal__footer">
@@ -2076,8 +2098,8 @@
               variant="brand"
               class="slds-m-left_x-small"
               onclick={handleSaveConfig}
-            >
-            </lightning-button>
+              disabled={isConfigSaveDisabled}
+            ></lightning-button>
           </footer>
         </div>
       </section>
