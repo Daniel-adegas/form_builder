@@ -1,277 +1,307 @@
 <template>
-    <template if:true={isLoading}>
-        <lightning-spinner alternative-text="Loading..." size="medium"></lightning-spinner>
-    </template>
+  <template if:true={isLoading}>
+    <lightning-spinner
+      alternative-text="Loading..."
+      size="medium"
+    ></lightning-spinner>
+  </template>
 
-    <!-- Inline notification fallback for Experience Cloud -->
-    <template if:true={inlineMessage.visible}>
-        <div class={inlineAlertClass}>
-            <div class="inline-alert-content">
-                <lightning-icon
-                    icon-name={inlineAlertIcon}
-                    size="x-small"
-                    class="slds-m-right_x-small"
-                ></lightning-icon>
-                <div class="inline-alert-text">
-                    <strong>{inlineMessage.title}</strong> {inlineMessage.message}
-                </div>
-                <lightning-button-icon
-                    icon-name="utility:close"
-                    alternative-text="Dismiss"
-                    size="small"
-                    onclick={handleDismissInline}
-                ></lightning-button-icon>
-            </div>
+  <!-- Inline notification fallback for Experience Cloud -->
+  <template if:true={inlineMessage.visible}>
+    <div class={inlineAlertClass}>
+      <div class="inline-alert-content">
+        <lightning-icon
+          icon-name={inlineAlertIcon}
+          size="x-small"
+          class="slds-m-right_x-small"
+        ></lightning-icon>
+        <div class="inline-alert-text">
+          <strong>{inlineMessage.title}</strong> {inlineMessage.message}
         </div>
-    </template>
+        <lightning-button-icon
+          icon-name="utility:close"
+          alternative-text="Dismiss"
+          size="small"
+          onclick={handleDismissInline}
+        ></lightning-button-icon>
+      </div>
+    </div>
+  </template>
 
-    <!-- ===== FORM SELECTION ===== -->
-    <template if:true={isSelectMode}>
-        <div class="select-container">
-            <div class="select-card">
-                <div class="select-header">
-                    <lightning-icon icon-name="standard:survey" size="medium"></lightning-icon>
-                    <div class="select-header-text">
-                        <h2 class="select-title">Test a Form</h2>
-                        <p class="select-subtitle">Select a form below to preview it as an end user would see it.</p>
-                    </div>
-                </div>
-
-                <div class="select-body">
-                    <div class="slds-grid slds-grid_vertical-align-end slds-gutters">
-                        <div class="slds-col slds-size_2-of-3">
-                            <lightning-combobox
-                                label="Select Form"
-                                placeholder="Choose a form to test..."
-                                options={formOptions}
-                                value={selectedFormId}
-                                onchange={handleFormSelect}
-                            ></lightning-combobox>
-                        </div>
-                        <div class="slds-col slds-no-flex">
-                            <lightning-button
-                                label="Launch Form"
-                                variant="brand"
-                                icon-name="utility:play"
-                                onclick={handleLaunchForm}
-                                disabled={isLaunchDisabled}
-                            ></lightning-button>
-                        </div>
-                    </div>
-                    <div class="slds-m-top_medium">
-                        <lightning-textarea
-                            label="Record Context (JSON) — optional"
-                            placeholder="Paste JSON context here, e.g. account: 001XX, contact: 003XX"
-                            value={_userRecordContext}
-                            onchange={handleRecordContextChange}
-                            field-level-help="Provide a JSON map of context keys to record IDs for inbound pre-population. Keys must match the Context Key configured on Form Targets."
-                            max-length="2000"
-                        ></lightning-textarea>
-                    </div>
-                </div>
-            </div>
+  <!-- ===== FORM SELECTION ===== -->
+  <template if:true={isSelectMode}>
+    <div class="select-container">
+      <div class="select-card">
+        <div class="select-header">
+          <lightning-icon
+            icon-name="standard:survey"
+            size="medium"
+          ></lightning-icon>
+          <div class="select-header-text">
+            <h2 class="select-title">Test a Form</h2>
+            <p class="select-subtitle">
+              Select a form below to preview it as an end user would see it.
+            </p>
+          </div>
         </div>
-    </template>
 
-    <!-- ===== FORM RENDERING ===== -->
-    <template if:true={isRenderMode}>
-        <template if:true={hasFormStructure}>
-            <div class="renderer-container">
-
-                <!-- Read-Only Banner -->
-                <template if:true={isReadOnly}>
-                    <div class="readonly-banner">
-                        <lightning-icon icon-name="utility:lock" size="xx-small" class="slds-m-right_x-small"></lightning-icon>
-                        <span class="readonly-label">Read-Only</span>
-                        <template if:true={readOnlyBannerText}>
-                            <span class="readonly-meta">{readOnlyBannerText}</span>
-                        </template>
-                    </div>
-                </template>
-
-                <!-- Top Header Bar -->
-                <template if:true={showHeader}>
-                    <div class="renderer-header">
-                        <div class="header-left">
-                            <template if:true={showBackButton}>
-                                <lightning-button-icon
-                                    icon-name="utility:back"
-                                    alternative-text="Back"
-                                    variant="bare-inverse"
-                                    onclick={handleBackToSelect}
-                                    class="slds-m-right_small"
-                                ></lightning-button-icon>
-                            </template>
-                            <h1 class="renderer-form-name">{selectedFormName}</h1>
-                        </div>
-                        <div class="header-right">
-                            <template if:true={hasLanguages}>
-                                <div class="language-picker">
-                                    <lightning-icon icon-name="utility:world" size="xx-small" class="lang-icon"></lightning-icon>
-                                    <lightning-combobox
-                                        value={selectedLanguage}
-                                        options={languageOptions}
-                                        onchange={handleLanguageChange}
-                                        variant="label-hidden"
-                                        class="lang-combo"
-                                    ></lightning-combobox>
-                                </div>
-                            </template>
-                            <template if:false={isConversational}>
-                                <span class="page-counter-badge">{pageCounter}</span>
-                            </template>
-                        </div>
-                    </div>
-                </template>
-
-                <!-- Progress Bar -->
-                <template if:false={isConversational}>
-                    <div class="progress-bar-container">
-                        <div class="progress-bar-track">
-                            <div class="progress-bar-fill" style={progressWidth}></div>
-                        </div>
-                    </div>
-                </template>
-
-                <template if:true={currentFormDescription}>
-                    <div class="form-description-container">
-                        <p class="form-description">{currentFormDescription}</p>
-                    </div>
-                </template>
-
-                <!-- Step Pills -->
-                <template if:false={isConversational}>
-                    <div class="steps-container">
-                        <template for:each={progressSteps} for:item="step" for:index="idx">
-                            <div key={step.pageId} class={step.stepClass} data-index={idx} onclick={handleStepClick} onkeydown={handleStepKeydown} role="button" tabindex="0">
-                                <span class="step-number">{step.stepIndex}</span>
-                                <span class="step-label">{step.translatedPageName}</span>
-                            </div>
-                        </template>
-                    </div>
-                </template>
-
-                 <!-- Page Content Renderer Layout -->
-                <template if:true={isClassic}>
-                    <c-form-renderer-layout-classic
-                        current-page={currentPage}
-                        current-page-name={currentPageName}
-                        current-page-description={currentPageDescription}
-                        current-sections={currentSections}
-                        read-only={isReadOnly}
-                        feature-settings={featureSettings}
-                        onvaluechange={handleResponse}
-                    ></c-form-renderer-layout-classic>
-                </template>
-                <template if:true={isConversational}>
-                    <c-form-renderer-layout-conversational
-                        current-page={currentPage}
-                        current-page-name={currentPageName}
-                        current-page-description={currentFormDescription}
-                        current-sections={currentSections}
-                        read-only={isReadOnly}
-                        preview-mode={isPreviewMode}
-                        feature-settings={featureSettings}
-                        onvaluechange={handleResponse}
-                        onfinish={handleFinish}
-                    ></c-form-renderer-layout-conversational>
-                </template>
-                <template if:true={isCardBased}>
-                    <c-form-renderer-layout-card-based
-                        current-page={currentPage}
-                        current-page-name={currentPageName}
-                        current-page-description={currentFormDescription}
-                        current-sections={currentSections}
-                        read-only={isReadOnly}
-                        feature-settings={featureSettings}
-                        onvaluechange={handleResponse}
-                    ></c-form-renderer-layout-card-based>
-                </template>
-                <template if:true={isWizard}>
-                    <c-form-renderer-layout-wizard
-                        form-structure={formStructure}
-                        hidden-elements={hiddenElements}
-                        current-page={currentPage}
-                        current-page-name={currentPageName}
-                        current-page-description={currentFormDescription}
-                        current-sections={currentSections}
-                        progress-steps={progressSteps}
-                        current-step={currentStep}
-                        read-only={isReadOnly}
-                        feature-settings={featureSettings}
-                        onvaluechange={handleResponse}
-                        onstepchange={handleStepClick}
-                    ></c-form-renderer-layout-wizard>
-                </template>
-
-                <!-- Navigation Footer -->
-                <template if:false={isConversational}>
-                    <div class="nav-footer">
-                        <div class="nav-footer-inner">
-                            <template if:false={isFirstPage}>
-                                <lightning-button
-                                    label="Back"
-                                    variant="neutral"
-                                    icon-name="utility:back"
-                                    data-direction="prev"
-                                    onclick={handleNav}
-                                ></lightning-button>
-                            </template>
-                            <template if:true={isFirstPage}>
-                                <div></div>
-                            </template>
-
-                            <span class="nav-page-indicator">{pageCounter}</span>
-
-                            <template if:false={isLastPage}>
-                                <lightning-button
-                                    label="Next"
-                                    variant="brand"
-                                    icon-name="utility:forward"
-                                    icon-position="right"
-                                    data-direction="next"
-                                    onclick={handleNav}
-                                ></lightning-button>
-                            </template>
-                            <template if:true={isLastPage}>
-                                <template if:true={showSubmitButton}>
-                                    <lightning-button
-                                        label="Submit"
-                                        variant="success"
-                                        icon-name="utility:check"
-                                        onclick={handleFinish}
-                                    ></lightning-button>
-                                </template>
-                                <template if:false={showSubmitButton}>
-                                    <div></div>
-                                </template>
-                            </template>
-                        </div>
-                    </div>
-                </template>
+        <div class="select-body">
+          <div class="slds-grid slds-grid_vertical-align-end slds-gutters">
+            <div class="slds-col slds-size_2-of-3">
+              <lightning-combobox
+                label="Select Form"
+                placeholder="Choose a form to test..."
+                options={formOptions}
+                value={selectedFormId}
+                onchange={handleFormSelect}
+              ></lightning-combobox>
             </div>
+            <div class="slds-col slds-no-flex">
+              <lightning-button
+                label="Launch Form"
+                variant="brand"
+                icon-name="utility:play"
+                onclick={handleLaunchForm}
+                disabled={isLaunchDisabled}
+              ></lightning-button>
+            </div>
+          </div>
+          <div class="slds-m-top_medium">
+            <lightning-textarea
+              label="Record Context (JSON) — optional"
+              placeholder="Paste JSON context here, e.g. account: 001XX, contact: 003XX"
+              value={_userRecordContext}
+              onchange={handleRecordContextChange}
+              field-level-help="Provide a JSON map of context keys to record IDs for inbound pre-population. Keys must match the Context Key configured on Form Targets."
+              max-length="2000"
+            ></lightning-textarea>
+          </div>
+        </div>
+      </div>
+    </div>
+  </template>
+
+  <!-- ===== FORM RENDERING ===== -->
+  <template if:true={isRenderMode}>
+    <template if:true={hasFormStructure}>
+      <div class="renderer-container">
+        <!-- Read-Only Banner -->
+        <template if:true={isReadOnly}>
+          <div class="readonly-banner">
+            <lightning-icon
+              icon-name="utility:lock"
+              size="xx-small"
+              class="slds-m-right_x-small"
+            ></lightning-icon>
+            <span class="readonly-label">Read-Only</span>
+            <template if:true={readOnlyBannerText}>
+              <span class="readonly-meta">{readOnlyBannerText}</span>
+            </template>
+          </div>
         </template>
-    </template>
 
-    <!-- ===== SUCCESS SCREEN ===== -->
-    <template if:true={isSuccessMode}>
-        <div class="success-container">
-            <div class="success-card">
-                <div class="success-icon-wrap">
-                    <lightning-icon icon-name="action:approval" size="large"></lightning-icon>
-                </div>
-                <h2 class="success-title">Form Submitted Successfully</h2>
-                <p class="success-message">
-                    Your responses have been recorded. Thank you for completing the form.
-                </p>
-                <lightning-button
-                    label="Fill Another Form"
-                    variant="brand"
-                    icon-name="utility:new"
-                    onclick={handleStartNew}
-                    class="slds-m-top_large"
-                ></lightning-button>
+        <!-- Top Header Bar -->
+        <template if:true={showHeader}>
+          <div class="renderer-header">
+            <div class="header-left">
+              <template if:true={showBackButton}>
+                <lightning-button-icon
+                  icon-name="utility:back"
+                  alternative-text="Back"
+                  variant="bare-inverse"
+                  onclick={handleBackToSelect}
+                  class="slds-m-right_small"
+                ></lightning-button-icon>
+              </template>
+              <h1 class="renderer-form-name">{selectedFormName}</h1>
             </div>
-        </div>
+            <div class="header-right">
+              <template if:true={hasLanguages}>
+                <div class="language-picker">
+                  <lightning-icon
+                    icon-name="utility:world"
+                    size="xx-small"
+                    class="lang-icon"
+                  ></lightning-icon>
+                  <lightning-combobox
+                    value={selectedLanguage}
+                    options={languageOptions}
+                    onchange={handleLanguageChange}
+                    variant="label-hidden"
+                    class="lang-combo"
+                  ></lightning-combobox>
+                </div>
+              </template>
+              <template if:false={isConversational}>
+                <span class="page-counter-badge">{pageCounter}</span>
+              </template>
+            </div>
+          </div>
+        </template>
+
+        <!-- Progress Bar -->
+        <template if:false={isConversational}>
+          <div class="progress-bar-container">
+            <div class="progress-bar-track">
+              <div class="progress-bar-fill" style={progressWidth}></div>
+            </div>
+          </div>
+        </template>
+
+        <template if:true={currentFormDescription}>
+          <div class="form-description-container">
+            <p class="form-description">{currentFormDescription}</p>
+          </div>
+        </template>
+
+        <!-- Step Pills -->
+        <template if:false={isConversational}>
+          <div class="steps-container">
+            <template for:each={progressSteps} for:item="step" for:index="idx">
+              <div
+                key={step.pageId}
+                class={step.stepClass}
+                data-index={idx}
+                onclick={handleStepClick}
+                onkeydown={handleStepKeydown}
+                role="button"
+                tabindex="0"
+              >
+                <span class="step-number">{step.stepIndex}</span>
+                <span class="step-label">{step.translatedPageName}</span>
+              </div>
+            </template>
+          </div>
+        </template>
+
+        <!-- Page Content Renderer Layout -->
+        <template if:true={isClassic}>
+          <c-form-renderer-layout-classic
+            current-page={currentPage}
+            current-page-name={currentPageName}
+            current-page-description={currentPageDescription}
+            current-sections={currentSections}
+            read-only={isReadOnly}
+            feature-settings={featureSettings}
+            onvaluechange={handleResponse}
+          ></c-form-renderer-layout-classic>
+        </template>
+        <template if:true={isConversational}>
+          <c-form-renderer-layout-conversational
+            current-page={currentPage}
+            current-page-name={currentPageName}
+            current-page-description={currentPageDescription}
+            current-sections={currentSections}
+            read-only={isReadOnly}
+            preview-mode={previewMode}
+            is-last-page={isLastPage}
+            is-first-page={isFirstPage}
+            feature-settings={featureSettings}
+            onvaluechange={handleResponse}
+            onnextpage={handleConversationalNextPage}
+            onpreviouspage={handleConversationalPreviousPage}
+            onfinish={handleFinish}
+          ></c-form-renderer-layout-conversational>
+        </template>
+        <template if:true={isCardBased}>
+          <c-form-renderer-layout-card-based
+            current-page={currentPage}
+            current-page-name={currentPageName}
+            current-page-description={currentPageDescription}
+            current-sections={currentSections}
+            read-only={isReadOnly}
+            feature-settings={featureSettings}
+            onvaluechange={handleResponse}
+          ></c-form-renderer-layout-card-based>
+        </template>
+        <template if:true={isWizard}>
+          <c-form-renderer-layout-wizard
+            form-structure={formStructure}
+            hidden-elements={hiddenElements}
+            current-page={currentPage}
+            current-page-name={currentPageName}
+            current-page-description={currentPageDescription}
+            current-sections={currentSections}
+            progress-steps={progressSteps}
+            current-step={currentStep}
+            read-only={isReadOnly}
+            feature-settings={featureSettings}
+            onvaluechange={handleResponse}
+            onstepchange={handleStepClick}
+          ></c-form-renderer-layout-wizard>
+        </template>
+
+        <!-- Navigation Footer -->
+        <template if:false={isConversational}>
+          <div class="nav-footer">
+            <div class="nav-footer-inner">
+              <template if:false={isFirstPage}>
+                <lightning-button
+                  label="Back"
+                  variant="neutral"
+                  icon-name="utility:back"
+                  data-direction="prev"
+                  onclick={handleNav}
+                ></lightning-button>
+              </template>
+              <template if:true={isFirstPage}>
+                <div></div>
+              </template>
+
+              <span class="nav-page-indicator">{pageCounter}</span>
+
+              <template if:false={isLastPage}>
+                <lightning-button
+                  label="Next"
+                  variant="brand"
+                  icon-name="utility:forward"
+                  icon-position="right"
+                  data-direction="next"
+                  onclick={handleNav}
+                ></lightning-button>
+              </template>
+              <template if:true={isLastPage}>
+                <template if:true={showSubmitButton}>
+                  <lightning-button
+                    label="Submit"
+                    variant="success"
+                    icon-name="utility:check"
+                    onclick={handleFinish}
+                  ></lightning-button>
+                </template>
+                <template if:false={showSubmitButton}>
+                  <div></div>
+                </template>
+              </template>
+            </div>
+          </div>
+        </template>
+      </div>
     </template>
+  </template>
+
+  <!-- ===== SUCCESS SCREEN ===== -->
+  <template if:true={isSuccessMode}>
+    <div class="success-container">
+      <div class="success-card">
+        <div class="success-icon-wrap">
+          <lightning-icon
+            icon-name="action:approval"
+            size="large"
+          ></lightning-icon>
+        </div>
+        <h2 class="success-title">Form Submitted Successfully</h2>
+        <p class="success-message">
+          Your responses have been recorded. Thank you for completing the form.
+        </p>
+        <lightning-button
+          label="Fill Another Form"
+          variant="brand"
+          icon-name="utility:new"
+          onclick={handleStartNew}
+          class="slds-m-top_large"
+        ></lightning-button>
+      </div>
+    </div>
+  </template>
 </template>

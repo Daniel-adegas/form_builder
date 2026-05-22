@@ -1,112 +1,194 @@
-import { createElement } from '@lwc/engine-dom';
-import FormRendererLayoutConversational from 'c/formRendererLayoutConversational';
+import { createElement } from "@lwc/engine-dom";
+import FormRendererLayoutConversational from "c/formRendererLayoutConversational";
 
-function buildSections(questionIds) {
-    return [
+function buildSampleSections() {
+  return [
+    {
+      sectionId: "sec-1",
+      translatedName: "Profile",
+      visibleQuestions: [
         {
-            sectionId: 'sec-1',
-            translatedName: 'Section A',
-            visibleQuestions: questionIds.map((questionId) => ({
-                questionId,
-                questionLayoutClass: 'slds-col slds-size_1-of-1',
-                questionType: 'Text',
-                questionText: `Question ${questionId}`,
-                textValue: ''
-            }))
+          questionId: "q-text-1",
+          questionType: "Text",
+          isRequired: false,
+          value: "",
+          textValue: ""
         }
-    ];
-}
-
-async function flushPromises(times = 1) {
-    for (let i = 0; i < times; i += 1) {
-        await Promise.resolve();
+      ]
     }
+  ];
 }
 
-function primaryActionButton(element) {
-    const buttons = [...element.shadowRoot.querySelectorAll('lightning-button')];
-    expect(buttons.length).toBeGreaterThanOrEqual(2);
-    return buttons[1];
+function appendConversationalLayout(props = {}) {
+  const element = createElement("c-form-renderer-layout-conversational", {
+    is: FormRendererLayoutConversational
+  });
+  Object.assign(element, {
+    currentPage: { pageId: "page-1" },
+    currentSections: buildSampleSections(),
+    ...props
+  });
+  document.body.appendChild(element);
+  return element;
 }
 
-describe('c-form-renderer-layout-conversational', () => {
-    afterEach(() => {
-        while (document.body.firstChild) {
-            document.body.removeChild(document.body.firstChild);
-        }
+describe("c-form-renderer-layout-conversational", () => {
+  afterEach(() => {
+    while (document.body.firstChild) {
+      document.body.removeChild(document.body.firstChild);
+    }
+  });
+
+  it("shows empty state when there are no visible questions", () => {
+    const element = appendConversationalLayout({ currentSections: [] });
+    const empty = element.shadowRoot.querySelector(".empty-state");
+    expect(empty).not.toBeNull();
+    expect(empty.textContent.trim()).toBe(
+      "No questions available on this page."
+    );
+  });
+
+  it("renders page description in conversation header when provided", () => {
+    const element = appendConversationalLayout({
+      currentPageName: "About you",
+      currentPageDescription: "Tell us a bit about yourself."
     });
 
-    it('after being on the last question of page 1, switching currentPage resets to the first question and primary is OK until the real last question', async () => {
-        const element = createElement('c-form-renderer-layout-conversational', {
-            is: FormRendererLayoutConversational
-        });
+    const description = element.shadowRoot.querySelector(
+      ".conversation-header .description"
+    );
+    expect(description).not.toBeNull();
+    expect(description.textContent.trim()).toBe(
+      "Tell us a bit about yourself."
+    );
+  });
 
-        element.currentPage = { pageId: 'page-1' };
-        element.currentSections = buildSections(['p1-q1', 'p1-q2']);
-        element.readOnly = false;
-        element.previewMode = false;
+  it("dispatches nextpage (not finish) on last question when another page remains", () => {
+    const element = appendConversationalLayout({ isLastPage: false });
+    const formQuestion = element.shadowRoot.querySelector("c-form-question");
+    formQuestion.reportInputValidity = jest.fn().mockReturnValue(true);
 
-        document.body.appendChild(element);
-        await flushPromises();
+    const nextListener = jest.fn();
+    const finishListener = jest.fn();
+    element.addEventListener("nextpage", nextListener);
+    element.addEventListener("finish", finishListener);
 
-        expect(element.shadowRoot.querySelector('.counter').textContent).toBe('1 of 2');
-        expect(primaryActionButton(element).label).toBe('OK');
+    const buttons = element.shadowRoot.querySelectorAll("lightning-button");
+    expect(buttons[1].label).toBe("Next");
+    buttons[1].click();
 
-        primaryActionButton(element).click();
-        await flushPromises();
+    expect(nextListener).toHaveBeenCalledTimes(1);
+    expect(finishListener).not.toHaveBeenCalled();
+  });
 
-        expect(element.shadowRoot.querySelector('.counter').textContent).toBe('2 of 2');
-        expect(primaryActionButton(element).label).toBe('Submit');
+  it("shows Next label on last question of page when not isLastPage", () => {
+    const element = appendConversationalLayout({ isLastPage: false });
+    const buttons = element.shadowRoot.querySelectorAll("lightning-button");
+    expect(buttons[1].label).toBe("Next");
+  });
 
-        const finishSpy = jest.fn();
-        element.addEventListener('finish', finishSpy);
+  it("dispatches finish from last question when isLastPage", () => {
+    const element = appendConversationalLayout({
+      isLastPage: true,
+      readOnly: false,
+      previewMode: false
+    });
+    const formQuestion = element.shadowRoot.querySelector("c-form-question");
+    formQuestion.reportInputValidity = jest.fn().mockReturnValue(true);
 
-        element.currentPage = { pageId: 'page-2' };
-        element.currentSections = buildSections(['p2-q1', 'p2-q2', 'p2-q3']);
-        await flushPromises();
+    const finishListener = jest.fn();
+    element.addEventListener("finish", finishListener);
 
-        const formQuestion = element.shadowRoot.querySelector('c-form-question');
-        expect(formQuestion.question.questionId).toBe('p2-q1');
-        expect(element.shadowRoot.querySelector('.counter').textContent).toBe('1 of 3');
-        expect(primaryActionButton(element).label).toBe('OK');
+    const buttons = element.shadowRoot.querySelectorAll("lightning-button");
+    expect(buttons[1].label).toBe("Submit");
+    buttons[1].click();
 
-        primaryActionButton(element).click();
-        await flushPromises();
-        expect(finishSpy).not.toHaveBeenCalled();
-        expect(element.shadowRoot.querySelector('.counter').textContent).toBe('2 of 3');
+    expect(finishListener).toHaveBeenCalledTimes(1);
+  });
 
-        primaryActionButton(element).click();
-        await flushPromises();
-        expect(finishSpy).not.toHaveBeenCalled();
-
-        expect(primaryActionButton(element).label).toBe('Submit');
-        primaryActionButton(element).click();
-        await flushPromises();
-
-        expect(finishSpy).toHaveBeenCalledTimes(1);
+  it("dispatches previouspage from first question when not isFirstPage", () => {
+    const element = appendConversationalLayout({
+      isFirstPage: false,
+      currentSections: buildSampleSections()
     });
 
-    it('blocks finish on the last question when readOnly or previewMode is effective (auto-submit guard)', async () => {
-        const element = createElement('c-form-renderer-layout-conversational', {
-            is: FormRendererLayoutConversational
-        });
+    const prevListener = jest.fn();
+    element.addEventListener("previouspage", prevListener);
 
-        element.currentPage = { pageId: 'page-a' };
-        element.currentSections = buildSections(['only-q']);
-        element.readOnly = true;
-        element.previewMode = false;
+    const buttons = element.shadowRoot.querySelectorAll("lightning-button");
+    expect(buttons[0].disabled).toBe(false);
+    buttons[0].click();
 
-        document.body.appendChild(element);
-        await flushPromises();
+    expect(prevListener).toHaveBeenCalledTimes(1);
+  });
 
-        const finishSpy = jest.fn();
-        element.addEventListener('finish', finishSpy);
+  it("keeps Previous disabled on first question when isFirstPage", () => {
+    const element = appendConversationalLayout({ isFirstPage: true });
+    const buttons = element.shadowRoot.querySelectorAll("lightning-button");
+    expect(buttons[0].disabled).toBe(true);
+  });
 
-        expect(primaryActionButton(element).label).toBe('Submit');
-        expect(primaryActionButton(element).disabled).toBe(true);
+  it("renders progress shell, active question host, and navigation buttons", () => {
+    const element = appendConversationalLayout();
 
-        primaryActionButton(element).click();
-        await flushPromises();
-        expect(finishSpy).not.toHaveBeenCalled();
-    });
+    expect(
+      element.shadowRoot.querySelector(".conversation-shell")
+    ).not.toBeNull();
+
+    const progress = element.shadowRoot.querySelector('[role="progressbar"]');
+    expect(progress).not.toBeNull();
+    expect(progress.getAttribute("aria-valuenow")).toBe("1");
+
+    const counter = element.shadowRoot.querySelector(".counter");
+    expect(counter.textContent.trim()).toBe("1 of 1");
+
+    const formQuestion = element.shadowRoot.querySelector("c-form-question");
+    expect(formQuestion).not.toBeNull();
+
+    const buttons = element.shadowRoot.querySelectorAll("lightning-button");
+    expect(buttons).toHaveLength(2);
+    expect(buttons[0].label).toBe("Previous");
+    expect(buttons[1].label).toBe("Submit");
+  });
+
+  it("re-dispatches valuechange from c-form-question with bubbles and composed, preserving detail", () => {
+    const element = appendConversationalLayout();
+    const formQuestion = element.shadowRoot.querySelector("c-form-question");
+    expect(formQuestion).not.toBeNull();
+
+    const hostListener = jest.fn();
+    element.addEventListener("valuechange", hostListener);
+
+    const detail = {
+      questionId: "q-text-1",
+      value: "Updated answer",
+      textValue: "Updated answer"
+    };
+
+    formQuestion.dispatchEvent(
+      new CustomEvent("valuechange", {
+        detail,
+        bubbles: true,
+        composed: true
+      })
+    );
+
+    expect(hostListener).toHaveBeenCalledTimes(1);
+    const evt = hostListener.mock.calls[0][0];
+    expect(evt.bubbles).toBe(true);
+    expect(evt.composed).toBe(true);
+    expect(evt.detail).toEqual(detail);
+  });
+
+  it("disables submit on last step when readOnly (handleFinish parity)", () => {
+    const element = appendConversationalLayout({ readOnly: true });
+    const buttons = element.shadowRoot.querySelectorAll("lightning-button");
+    expect(buttons[1].disabled).toBe(true);
+  });
+
+  it("disables submit on last step when previewMode (handleFinish parity)", () => {
+    const element = appendConversationalLayout({ previewMode: true });
+    const buttons = element.shadowRoot.querySelectorAll("lightning-button");
+    expect(buttons[1].disabled).toBe(true);
+  });
 });

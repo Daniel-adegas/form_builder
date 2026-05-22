@@ -1,349 +1,380 @@
-import { LightningElement, api } from 'lwc';
-import { tableQuestionHasAnswer } from 'c/formTableQuestionUtil';
+import { LightningElement, api } from "lwc";
+import { tableQuestionHasAnswer } from "c/formTableQuestionUtil";
 
 export default class FormRendererLayoutWizard extends LightningElement {
-    @api formStructure = [];
-    @api hiddenElements = {};
-    @api currentPage;
-    @api currentPageName;
-    @api currentPageDescription;
-    @api currentSections = [];
-    @api progressSteps = [];
-    @api currentStep = 0;
-    @api readOnly = false;
-    @api featureSettings;
+  @api formStructure = [];
+  @api hiddenElements = {};
+  @api currentPage;
+  @api currentPageName;
+  @api currentPageDescription;
+  @api currentSections = [];
+  @api progressSteps = [];
+  @api currentStep = 0;
+  @api readOnly = false;
+  @api featureSettings;
 
-    activeQuestionId;
-    answerState = {};
-    pendingScrollQuestionId;
-    scrollHighlightTimeoutId;
+  activeQuestionId;
+  answerState = {};
+  pendingScrollQuestionId;
+  scrollHighlightTimeoutId;
 
-    /** Avoids JSON.parse on every getter run for unchanged question values (e.g. each keystroke). */
-    _hasRealValueCache = new Map();
-    _hasRealValueCacheMax = 512;
+  _answeredMemo;
+  _hasRealValueCache;
 
-    _sidebarPagesCache;
-    _sidebarPagesDepsKey;
-    _sidebarBaselineFormRef;
-    _sidebarBaselineProgressRef;
-    _sidebarBaselineHiddenRef;
-    /** Serialized baseline question values; recomputed only when structure @api refs change. */
-    _sidebarValueBaseline = '';
+  /** Cached sidebar shape; invalidated when progressSteps/formStructure/hiddenElements refs change. */
+  _sidebarStaticDeps = null;
+  _sidebarStaticPages = null;
 
-    get currentQuestions() {
-        const questions = [];
+  _ensureMemoCaches() {
+    if (!this._answeredMemo) {
+      this._answeredMemo = new Map();
+    }
+    if (!this._hasRealValueCache) {
+      this._hasRealValueCache = new Map();
+    }
+  }
 
-        for (const section of this.currentSections || []) {
-            for (const question of section.visibleQuestions || []) {
-                questions.push(question);
-            }
+  get currentQuestions() {
+    const questions = [];
+
+    for (const section of this.currentSections || []) {
+      for (const question of section.visibleQuestions || []) {
+        questions.push(question);
+      }
+    }
+
+    return questions;
+  }
+
+  /** Questions that count toward wizard progress (disabled fields are read-only / not user-answerable). */
+  get progressQuestions() {
+    return this.currentQuestions.filter((q) => q.isDisabled !== true);
+  }
+
+  _syncSidebarStructure() {
+    const progressSteps = this.progressSteps;
+    const formStructure = this.formStructure;
+    const hiddenElements = this.hiddenElements;
+
+    if (
+      this._sidebarStaticDeps &&
+      this._sidebarStaticDeps.progressSteps === progressSteps &&
+      this._sidebarStaticDeps.formStructure === formStructure &&
+      this._sidebarStaticDeps.hiddenElements === hiddenElements &&
+      this._sidebarStaticPages
+    ) {
+      return;
+    }
+
+    const pages = [];
+
+    for (let index = 0; index < (progressSteps || []).length; index++) {
+      const step = progressSteps[index];
+      const page = (formStructure || []).find((p) => p.pageId === step.pageId);
+      const questionRefs = [];
+
+      for (const section of page?.sections || []) {
+        if (hiddenElements?.[section.sectionId]) {
+          continue;
         }
 
-        return questions;
-    }
+        for (const question of section.questions || []) {
+          if (hiddenElements?.[question.questionId]) {
+            continue;
+          }
 
-    get answeredQuestionCount() {
-        return this.currentQuestions.filter(q => this.isAnswered(q)).length;
-    }
-
-    get totalQuestionCount() {
-        return this.currentQuestions.length;
-    }
-
-    get questionProgressText() {
-        return `${this.answeredQuestionCount} of ${this.totalQuestionCount} answered`;
-    }
-
-    get questionProgressWidth() {
-        if (!this.totalQuestionCount) {
-            return 'width: 0%';
+          questionRefs.push({
+            questionId: question.questionId,
+            questionText: question.questionText || question.questionName,
+            baseQuestion: question
+          });
         }
+      }
 
-        return `width: ${Math.round((this.answeredQuestionCount / this.totalQuestionCount) * 100)}%`;
+      pages.push({ step, index, questionRefs });
     }
 
-    get sidebarPages() {
-        const key = this._getSidebarPagesDepsKey();
-        if (key === this._sidebarPagesDepsKey && this._sidebarPagesCache) {
-            return this._sidebarPagesCache;
-        }
-        this._sidebarPagesDepsKey = key;
-        this._sidebarPagesCache = this._buildSidebarPages();
-        return this._sidebarPagesCache;
+    this._sidebarStaticPages = pages;
+    this._sidebarStaticDeps = {
+      progressSteps,
+      formStructure,
+      hiddenElements
+    };
+  }
+
+  get answeredQuestionCount() {
+    return this.progressQuestions.filter((q) => this.isAnswered(q)).length;
+  }
+
+  get totalQuestionCount() {
+    return this.progressQuestions.length;
+  }
+
+  get questionProgressText() {
+    return `${this.answeredQuestionCount} of ${this.totalQuestionCount} answered`;
+  }
+
+  get questionProgressWidth() {
+    if (!this.totalQuestionCount) {
+      return "width: 0%";
     }
 
-    _syncSidebarValueBaselineIfStale() {
-        const struct = this.formStructure || [];
-        const steps = this.progressSteps || [];
-        const hidden = this.hiddenElements || {};
-        if (
-            struct === this._sidebarBaselineFormRef &&
-            steps === this._sidebarBaselineProgressRef &&
-            hidden === this._sidebarBaselineHiddenRef
-        ) {
-            return;
-        }
-        this._sidebarBaselineFormRef = struct;
-        this._sidebarBaselineProgressRef = steps;
-        this._sidebarBaselineHiddenRef = hidden;
+    return `width: ${Math.round((this.answeredQuestionCount / this.totalQuestionCount) * 100)}%`;
+  }
 
-        const stepPart = steps.map(s => s.pageId).join('\u001e');
-        const hiddenPart = Object.keys(hidden)
-            .sort()
-            .map(k => `${k}:${hidden[k]}`)
-            .join('\u001e');
-        const baselinePart = struct
-            .map(p =>
-                (p.sections || [])
-                    .map(sec =>
-                        (sec.questions || [])
-                            .map(
-                                q =>
-                                    `${q.questionId}\u001f${q.questionType}\u001f${q.value}\u001f${q.textValue}`
-                            )
-                            .join('\u001e')
-                    )
-                    .join('\u001d')
-            )
-            .join('\u001c');
-        this._sidebarValueBaseline = [stepPart, hiddenPart, struct.length, baselinePart].join('\u0000');
+  get sidebarPages() {
+    this._syncSidebarStructure();
+
+    const liveByQuestionId = new Map();
+    for (const question of this.currentQuestions) {
+      liveByQuestionId.set(question.questionId, question);
     }
 
-    _getSidebarPagesDepsKey() {
-        this._syncSidebarValueBaselineIfStale();
-        const answers = this.answerState || {};
-        const answerPart = Object.keys(answers)
-            .sort()
-            .map(k => {
-                const a = answers[k];
-                return `${k}\u001f${a?.value}\u001f${a?.textValue}`;
-            })
-            .join('\u001e');
-        return [this._sidebarValueBaseline, answerPart, this.activeQuestionId].join('\u0000');
+    const activeId = this.activeQuestionId;
+
+    return this._sidebarStaticPages.map(
+      ({ step, index: stepIndex, questionRefs }) => ({
+        ...step,
+        index: stepIndex,
+        questions: questionRefs.map((ref) => {
+          const questionForStatus =
+            liveByQuestionId.get(ref.questionId) || ref.baseQuestion;
+
+          return {
+            questionId: ref.questionId,
+            questionText: ref.questionText,
+            itemClass:
+              ref.questionId === activeId
+                ? "question-nav-item question-nav-active"
+                : "question-nav-item",
+            isDisabled: questionForStatus?.isDisabled === true,
+            isAnswered: this.isAnswered(questionForStatus)
+          };
+        })
+      })
+    );
+  }
+
+  isAnswered(question) {
+    if (!question) return false;
+
+    return this.memoizedIsAnswered(question);
+  }
+
+  memoizedIsAnswered(question) {
+    if (!question?.questionId) return false;
+
+    const liveAnswer = this.answerState[question.questionId];
+    const cacheKey =
+      `${question.questionId}\u0000` +
+      `${question.isDisabled === true}\u0000` +
+      `${question.isRequired === true}\u0000` +
+      `${JSON.stringify(liveAnswer?.value)}\u0000` +
+      `${JSON.stringify(liveAnswer?.textValue)}\u0000` +
+      `${JSON.stringify(question.value)}\u0000` +
+      `${JSON.stringify(question.textValue)}\u0000` +
+      `${question.questionType || ""}\u0000` +
+      `${JSON.stringify(question.tableColumns ?? null)}`;
+    this._ensureMemoCaches();
+    if (this._answeredMemo.has(cacheKey)) {
+      return this._answeredMemo.get(cacheKey);
     }
 
-    _buildSidebarPages() {
-        return (this.progressSteps || []).map((step, index) => {
-            const page = (this.formStructure || []).find(p => p.pageId === step.pageId);
-            const questions = [];
+    const result = this.computeIsAnswered(question, liveAnswer);
 
-            for (const section of page?.sections || []) {
-                if (this.hiddenElements?.[section.sectionId]) {
-                    continue;
-                }
+    if (this._answeredMemo.size > 500) {
+      this._answeredMemo.clear();
+    }
 
-                for (const question of section.questions || []) {
-                    if (this.hiddenElements?.[question.questionId]) {
-                        continue;
-                    }
+    this._answeredMemo.set(cacheKey, result);
+    return result;
+  }
 
-                    const liveQuestion = this.getLiveQuestion(question.questionId);
-                    const questionForStatus = liveQuestion || question;
+  computeIsAnswered(
+    question,
+    liveAnswer = this.answerState[question.questionId]
+  ) {
+    if (question.questionType === "Table") {
+      const textValue = liveAnswer?.textValue ?? question.textValue;
+      return tableQuestionHasAnswer(textValue, question.tableColumns);
+    }
 
-                    questions.push({
-                        questionId: question.questionId,
-                        questionText: question.questionText || question.questionName,
-                        itemClass:
-                            question.questionId === this.activeQuestionId
-                                ? 'question-nav-item question-nav-active'
-                                : 'question-nav-item',
-                        isAnswered: this.isAnswered(questionForStatus)
-                    });
-                }
-            }
+    if (liveAnswer) {
+      return (
+        this.hasRealValue(liveAnswer.value) ||
+        this.hasRealValue(liveAnswer.textValue)
+      );
+    }
 
-            return {
-                ...step,
-                index,
-                questions
-            };
+    return (
+      this.hasRealValue(question.value) || this.hasRealValue(question.textValue)
+    );
+  }
+
+  hasRealValue(value) {
+    if (value === null || value === undefined) return false;
+
+    const text = String(value).trim();
+
+    if (text === "" || text === "[]" || text === "{}") {
+      return false;
+    }
+
+    const first = text[0];
+    if (first !== "[" && first !== "{") {
+      return text !== "";
+    }
+
+    this._ensureMemoCaches();
+    if (this._hasRealValueCache.has(text)) {
+      return this._hasRealValueCache.get(text);
+    }
+
+    let result;
+    try {
+      const parsed = JSON.parse(text);
+
+      if (Array.isArray(parsed)) {
+        result = parsed.some((row) => {
+          if (!row || typeof row !== "object") return false;
+
+          return Object.values(row).some((cell) => {
+            const cellText = String(cell ?? "").trim();
+
+            return cellText !== "";
+          });
         });
-    }
-
-    getLiveQuestion(questionId) {
-        return this.currentQuestions.find(q => q.questionId === questionId);
-    }
-
-    isAnswered(question) {
-        if (!question) return false;
-
-        const liveAnswer = this.answerState[question.questionId];
-
-        if (question.questionType === 'Table') {
-            const textValue = liveAnswer?.textValue ?? question.textValue;
-            return tableQuestionHasAnswer(textValue);
-        }
-
-        if (liveAnswer) {
-            return this.hasRealValue(liveAnswer.value) || this.hasRealValue(liveAnswer.textValue);
-        }
-
-        return this.hasRealValue(question.value) || this.hasRealValue(question.textValue);
-    }
-
-    hasRealValue(value) {
-        if (value === null || value === undefined) return false;
-
-        const text = String(value).trim();
-
-        if (text === '' || text === '[]' || text === '{}') {
-            return false;
-        }
-
-        const first = text[0];
-        if (first !== '[' && first !== '{') {
-            return text !== '';
-        }
-
-        if (this._hasRealValueCache.has(text)) {
-            return this._hasRealValueCache.get(text);
-        }
-
-        let result;
-        try {
-            const parsed = JSON.parse(text);
-
-            if (Array.isArray(parsed)) {
-                result = parsed.some(row => {
-                    if (!row || typeof row !== 'object') return false;
-
-                    return Object.values(row).some(cell => {
-                        const cellText = String(cell ?? '').trim();
-
-                        return cellText !== '';
-                    });
-                });
-            } else if (typeof parsed === 'object' && parsed !== null) {
-                result = Object.values(parsed).some(v => String(v ?? '').trim() !== '');
-            } else {
-                result = text !== '';
-            }
-        } catch (e) {
-            result = text !== '';
-        }
-
-        this._memoizeHasRealValue(text, result);
-        return result;
-    }
-
-    _memoizeHasRealValue(text, result) {
-        if (this._hasRealValueCache.size >= this._hasRealValueCacheMax) {
-            const oldestKey = this._hasRealValueCache.keys().next().value;
-            this._hasRealValueCache.delete(oldestKey);
-        }
-        this._hasRealValueCache.set(text, result);
-    }
-
-    handleValueChange(event) {
-        const detail = event.detail || {};
-        this.activeQuestionId = detail.questionId;
-
-        this.answerState = {
-            ...this.answerState,
-            [detail.questionId]: {
-                value: detail.value,
-                textValue: detail.textValue
-            }
-        };
-
-        this.dispatchEvent(
-            new CustomEvent('valuechange', {
-                detail,
-                bubbles: true,
-                composed: true
-            })
+      } else if (parsed !== null && typeof parsed === "object") {
+        result = Object.values(parsed).some(
+          (v) => String(v ?? "").trim() !== ""
         );
+      } else {
+        result = text !== "";
+      }
+    } catch {
+      result = text !== "";
     }
 
-    handleQuestionFocus(event) {
-        this.activeQuestionId = event.currentTarget.dataset.bodyQuestionId;
+    if (result === undefined) {
+      result = text !== "";
     }
 
-    handleStepClick(event) {
-        this.dispatchEvent(
-            new CustomEvent('stepchange', {
-                detail: {
-                    index: event.currentTarget.dataset.index
-                },
-                bubbles: true,
-                composed: true
-            })
-        );
+    if (this._hasRealValueCache.size > 500) {
+      this._hasRealValueCache.clear();
     }
 
-    renderedCallback() {
-        if (this.pendingScrollQuestionId) {
-            const questionId = this.pendingScrollQuestionId;
-            this.pendingScrollQuestionId = null;
+    this._hasRealValueCache.set(text, result);
+    return result;
+  }
 
-            requestAnimationFrame(() => {
-                this.scrollToQuestion(questionId);
-            });
-        }
-    }
+  handleValueChange(event) {
+    // Child event bubbles/composes to this host; re-dispatch once for parents.
+    event.stopPropagation();
 
-    handleQuestionNavClick(event) {
-        const questionId = event.currentTarget.dataset.questionId;
-        const pageIndex = Number(event.currentTarget.dataset.pageIndex);
+    const detail = event.detail || {};
+    this.activeQuestionId = detail.questionId;
 
-        this.activeQuestionId = questionId;
-        this.pendingScrollQuestionId = questionId;
+    this.answerState = {
+      ...this.answerState,
+      [detail.questionId]: {
+        value: detail.value,
+        textValue: detail.textValue
+      }
+    };
 
-        if (pageIndex !== this.currentStep) {
-            this.dispatchEvent(
-                new CustomEvent('stepchange', {
-                    detail: {
-                        index: pageIndex
-                    },
-                    bubbles: true,
-                    composed: true
-                })
-            );
-            return;
-        }
+    this.dispatchEvent(
+      new CustomEvent("valuechange", {
+        detail,
+        bubbles: true,
+        composed: true
+      })
+    );
+  }
 
+  handleQuestionFocus(event) {
+    this.activeQuestionId = event.currentTarget.dataset.bodyQuestionId;
+  }
+
+  handleStepClick(event) {
+    this.dispatchEvent(
+      new CustomEvent("stepchange", {
+        detail: {
+          index: event.currentTarget.dataset.index
+        },
+        bubbles: true,
+        composed: true
+      })
+    );
+  }
+
+  renderedCallback() {
+    if (this.pendingScrollQuestionId) {
+      const questionId = this.pendingScrollQuestionId;
+      this.pendingScrollQuestionId = null;
+
+      // eslint-disable-next-line @lwc/lwc/no-async-operation
+      requestAnimationFrame(() => {
         this.scrollToQuestion(questionId);
+      });
+    }
+  }
+
+  handleQuestionNavClick(event) {
+    const questionId = event.currentTarget.dataset.questionId;
+    const pageIndex = Number(event.currentTarget.dataset.pageIndex);
+
+    this.activeQuestionId = questionId;
+    this.pendingScrollQuestionId = questionId;
+
+    if (pageIndex !== this.currentStep) {
+      this.dispatchEvent(
+        new CustomEvent("stepchange", {
+          detail: {
+            index: pageIndex
+          },
+          bubbles: true,
+          composed: true
+        })
+      );
+      return;
     }
 
-    disconnectedCallback() {
-        if (this.scrollHighlightTimeoutId != null) {
-            clearTimeout(this.scrollHighlightTimeoutId);
-            this.scrollHighlightTimeoutId = null;
-        }
-        this._hasRealValueCache.clear();
-        this._sidebarPagesCache = undefined;
-        this._sidebarPagesDepsKey = undefined;
-        this._sidebarBaselineFormRef = undefined;
-        this._sidebarBaselineProgressRef = undefined;
-        this._sidebarBaselineHiddenRef = undefined;
-        this._sidebarValueBaseline = '';
+    this.scrollToQuestion(questionId);
+  }
+
+  disconnectedCallback() {
+    if (this.scrollHighlightTimeoutId != null) {
+      clearTimeout(this.scrollHighlightTimeoutId);
+      this.scrollHighlightTimeoutId = null;
+    }
+  }
+
+  scrollToQuestion(questionId) {
+    const questionEl = this.template.querySelector(
+      `[data-body-question-id="${questionId}"]`
+    );
+
+    if (!questionEl) return;
+
+    this.template.querySelectorAll(".question-highlight").forEach((el) => {
+      el.classList.remove("question-highlight");
+    });
+
+    questionEl.scrollIntoView({
+      behavior: "smooth",
+      block: "center"
+    });
+
+    questionEl.classList.add("question-highlight");
+
+    if (this.scrollHighlightTimeoutId != null) {
+      clearTimeout(this.scrollHighlightTimeoutId);
     }
 
-    scrollToQuestion(questionId) {
-        const questionEl = this.template.querySelector(
-            `[data-body-question-id="${questionId}"]`
-        );
-
-        if (!questionEl) return;
-
-        this.template.querySelectorAll('.question-highlight').forEach(el => {
-            el.classList.remove('question-highlight');
-        });
-
-        questionEl.scrollIntoView({
-            behavior: 'smooth',
-            block: 'center'
-        });
-
-        questionEl.classList.add('question-highlight');
-
-        if (this.scrollHighlightTimeoutId != null) {
-            clearTimeout(this.scrollHighlightTimeoutId);
-        }
-
-        this.scrollHighlightTimeoutId = window.setTimeout(() => {
-            this.scrollHighlightTimeoutId = null;
-            questionEl.classList.remove('question-highlight');
-        }, 2100);
-    }
+    // eslint-disable-next-line @lwc/lwc/no-async-operation
+    this.scrollHighlightTimeoutId = window.setTimeout(() => {
+      this.scrollHighlightTimeoutId = null;
+      questionEl.classList.remove("question-highlight");
+    }, 2100);
+  }
 }
