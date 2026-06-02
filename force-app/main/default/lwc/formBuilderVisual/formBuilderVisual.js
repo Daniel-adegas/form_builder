@@ -1208,7 +1208,7 @@ export default class FormBuilderVisual extends LightningElement {
       this._boundModalKeydown = this._handleModalKeydownCapture.bind(this);
     }
     this._modalTrapPreviousFocus = document.activeElement;
-    window.addEventListener("keydown", this._boundModalKeydown, true);
+    this.template.addEventListener("keydown", this._boundModalKeydown);
     // Double rAF so focus runs after the modal subtree paints (focus trap).
     // eslint-disable-next-line @lwc/lwc/no-async-operation
     requestAnimationFrame(() => {
@@ -1219,7 +1219,7 @@ export default class FormBuilderVisual extends LightningElement {
 
   _teardownModalFocusTrap() {
     if (this._boundModalKeydown) {
-      window.removeEventListener("keydown", this._boundModalKeydown, true);
+      this.template.removeEventListener("keydown", this._boundModalKeydown);
     }
     const prev = this._modalTrapPreviousFocus;
     this._modalTrapPreviousFocus = null;
@@ -1414,11 +1414,6 @@ export default class FormBuilderVisual extends LightningElement {
         this._elementIsVisibleForModalTrap(el)
       ) {
         out.push(el);
-      }
-      if (el.shadowRoot) {
-        for (const c of el.shadowRoot.children) {
-          visit(c);
-        }
       }
       for (const c of el.children) {
         visit(c);
