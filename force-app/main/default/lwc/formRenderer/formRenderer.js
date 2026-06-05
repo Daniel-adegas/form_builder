@@ -339,6 +339,9 @@ export default class FormRenderer extends LightningElement {
   get isConversational() {
     return this.rendererLayout?.toLowerCase() === "conversational";
   }
+  get isNotConversational() {
+    return !this.isConversational;
+  }
   get isCardBased() {
     return this.rendererLayout?.toLowerCase() === "cardbased";
   }

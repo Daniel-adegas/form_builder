@@ -278,13 +278,13 @@ private class FormServiceTest {
       }
     }
 
-    System.assertEquals(
+    Assert.areEqual(
       wrapper.pages.size(),
       totalPagesInCategories,
       'Total pages across all categories must equal wrapper.pages.size()'
     );
     for (FormService.Page_Wrapper pw : wrapper.pages) {
-      System.assert(
+      Assert.isTrue(
         pageIdsFromCategories.contains(pw.pageId),
         'Every page in wrapper.pages must appear in exactly one category bucket'
       );
@@ -304,11 +304,12 @@ private class FormServiceTest {
       LIMIT 1
     ];
 
-    Integer before = Limits.getQueries();
+    Test.startTest();
     FormService.getFormStructureWithMeta(form.Id);
-    Integer queriesUsed = Limits.getQueries() - before;
+    Integer queriesUsed = Limits.getQueries();
+    Test.stopTest();
 
-    System.assert(
+    Assert.isTrue(
       queriesUsed <= 8,
       'getFormStructureWithMeta should use at most 8 SOQL queries; used: ' +
       queriesUsed
@@ -347,12 +348,12 @@ private class FormServiceTest {
     Test.stopTest();
 
     // createFullFormStructure assigns Page 1 → Category 1, Page 2 → Category 2
-    System.assertEquals(
+    Assert.areEqual(
       cat1.Id,
       pages[0].categoryId,
       'Page 1 categoryId should match Category 1'
     );
-    System.assertEquals(
+    Assert.areEqual(
       cat2.Id,
       pages[1].categoryId,
       'Page 2 categoryId should match Category 2'
@@ -397,23 +398,23 @@ private class FormServiceTest {
       for (FormService.Dependency_Wrapper dw : pw.dependencies) {
         if (dw.controllingResponse == resp.Id && dw.targetType == 'Category') {
           foundCategoryDep = true;
-          System.assertEquals(
+          Assert.areEqual(
             cat.Id,
             dw.targetCategory,
             'targetCategory must be populated on the wrapper'
           );
-          System.assertEquals('Hide', dw.action, 'action should be Hide');
-          System.assertEquals(
+          Assert.areEqual('Hide', dw.action, 'action should be Hide');
+          Assert.areEqual(
             null,
             dw.targetPage,
             'targetPage must be null for a category dependency'
           );
-          System.assertEquals(
+          Assert.areEqual(
             null,
             dw.targetSection,
             'targetSection must be null for a category dependency'
           );
-          System.assertEquals(
+          Assert.areEqual(
             null,
             dw.targetQuestion,
             'targetQuestion must be null for a category dependency'
@@ -421,7 +422,7 @@ private class FormServiceTest {
         }
       }
     }
-    System.assert(
+    Assert.isTrue(
       foundCategoryDep,
       'Category dependency must appear in the page wrappers returned by getFormStructureById'
     );

@@ -1,6 +1,8 @@
 <?xml version="1.0" encoding="UTF-8" ?>
 <CustomField xmlns="http://soap.sforce.com/2006/04/metadata">
     <fullName>C_Layout_Mode__c</fullName>
+    <description
+  >Controls the rendering layout for the form. Classic renders a standard stacked layout; Conversational presents one question at a time in a chat-like flow; Wizard groups questions into step-by-step pages; Card Based displays questions as selectable cards.</description>
     <label>Layout Mode</label>
     <required>false</required>
     <trackHistory>false</trackHistory>

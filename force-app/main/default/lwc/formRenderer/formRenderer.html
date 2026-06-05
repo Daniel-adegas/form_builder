@@ -1,5 +1,5 @@
 <template>
-  <template if:true={isLoading}>
+  <template lwc:if={isLoading}>
     <lightning-spinner
       alternative-text="Loading..."
       size="medium"
@@ -7,7 +7,7 @@
   </template>
 
   <!-- Inline notification fallback for Experience Cloud -->
-  <template if:true={inlineMessage.visible}>
+  <template lwc:if={inlineMessage.visible}>
     <div class={inlineAlertClass}>
       <div class="inline-alert-content">
         <lightning-icon
@@ -29,7 +29,7 @@
   </template>
 
   <!-- ===== FORM SELECTION ===== -->
-  <template if:true={isSelectMode}>
+  <template lwc:if={isSelectMode}>
     <div class="select-container">
       <div class="select-card">
         <div class="select-header">
@@ -82,11 +82,11 @@
   </template>
 
   <!-- ===== FORM RENDERING ===== -->
-  <template if:true={isRenderMode}>
-    <template if:true={hasFormStructure}>
+  <template lwc:if={isRenderMode}>
+    <template lwc:if={hasFormStructure}>
       <div class="renderer-container">
         <!-- Read-Only Banner -->
-        <template if:true={isReadOnly}>
+        <template lwc:if={isReadOnly}>
           <div class="readonly-banner">
             <lightning-icon
               icon-name="utility:lock"
@@ -94,17 +94,17 @@
               class="slds-m-right_x-small"
             ></lightning-icon>
             <span class="readonly-label">Read-Only</span>
-            <template if:true={readOnlyBannerText}>
+            <template lwc:if={readOnlyBannerText}>
               <span class="readonly-meta">{readOnlyBannerText}</span>
             </template>
           </div>
         </template>
 
         <!-- Top Header Bar -->
-        <template if:true={showHeader}>
+        <template lwc:if={showHeader}>
           <div class="renderer-header">
             <div class="header-left">
-              <template if:true={showBackButton}>
+              <template lwc:if={showBackButton}>
                 <lightning-button-icon
                   icon-name="utility:back"
                   alternative-text="Back"
@@ -116,7 +116,7 @@
               <h1 class="renderer-form-name">{selectedFormName}</h1>
             </div>
             <div class="header-right">
-              <template if:true={hasLanguages}>
+              <template lwc:if={hasLanguages}>
                 <div class="language-picker">
                   <lightning-icon
                     icon-name="utility:world"
@@ -132,7 +132,7 @@
                   ></lightning-combobox>
                 </div>
               </template>
-              <template if:false={isConversational}>
+              <template lwc:if={isNotConversational}>
                 <span class="page-counter-badge">{pageCounter}</span>
               </template>
             </div>
@@ -140,7 +140,7 @@
         </template>
 
         <!-- Progress Bar -->
-        <template if:false={isConversational}>
+        <template lwc:if={isNotConversational}>
           <div class="progress-bar-container">
             <div class="progress-bar-track">
               <div class="progress-bar-fill" style={progressWidth}></div>
@@ -148,14 +148,14 @@
           </div>
         </template>
 
-        <template if:true={currentFormDescription}>
+        <template lwc:if={currentFormDescription}>
           <div class="form-description-container">
             <p class="form-description">{currentFormDescription}</p>
           </div>
         </template>
 
         <!-- Step Pills -->
-        <template if:false={isConversational}>
+        <template lwc:if={isNotConversational}>
           <div class="steps-container">
             <template for:each={progressSteps} for:item="step" for:index="idx">
               <div
@@ -175,7 +175,7 @@
         </template>
 
         <!-- Page Content Renderer Layout -->
-        <template if:true={isClassic}>
+        <template lwc:if={isClassic}>
           <c-form-renderer-layout-classic
             current-page={currentPage}
             current-page-name={currentPageName}
@@ -186,7 +186,7 @@
             onvaluechange={handleResponse}
           ></c-form-renderer-layout-classic>
         </template>
-        <template if:true={isConversational}>
+        <template lwc:if={isConversational}>
           <c-form-renderer-layout-conversational
             current-page={currentPage}
             current-page-name={currentPageName}
@@ -203,7 +203,7 @@
             onfinish={handleFinish}
           ></c-form-renderer-layout-conversational>
         </template>
-        <template if:true={isCardBased}>
+        <template lwc:if={isCardBased}>
           <c-form-renderer-layout-card-based
             current-page={currentPage}
             current-page-name={currentPageName}
@@ -214,7 +214,7 @@
             onvaluechange={handleResponse}
           ></c-form-renderer-layout-card-based>
         </template>
-        <template if:true={isWizard}>
+        <template lwc:if={isWizard}>
           <c-form-renderer-layout-wizard
             form-structure={formStructure}
             hidden-elements={hiddenElements}
@@ -232,10 +232,13 @@
         </template>
 
         <!-- Navigation Footer -->
-        <template if:false={isConversational}>
+        <template lwc:if={isNotConversational}>
           <div class="nav-footer">
             <div class="nav-footer-inner">
-              <template if:false={isFirstPage}>
+              <template lwc:if={isFirstPage}>
+                <div></div>
+              </template>
+              <template lwc:else>
                 <lightning-button
                   label="Back"
                   variant="neutral"
@@ -244,13 +247,23 @@
                   onclick={handleNav}
                 ></lightning-button>
               </template>
-              <template if:true={isFirstPage}>
-                <div></div>
-              </template>
 
               <span class="nav-page-indicator">{pageCounter}</span>
 
-              <template if:false={isLastPage}>
+              <template lwc:if={isLastPage}>
+                <template lwc:if={showSubmitButton}>
+                  <lightning-button
+                    label="Submit"
+                    variant="success"
+                    icon-name="utility:check"
+                    onclick={handleFinish}
+                  ></lightning-button>
+                </template>
+                <template lwc:else>
+                  <div></div>
+                </template>
+              </template>
+              <template lwc:else>
                 <lightning-button
                   label="Next"
                   variant="brand"
@@ -260,19 +273,6 @@
                   onclick={handleNav}
                 ></lightning-button>
               </template>
-              <template if:true={isLastPage}>
-                <template if:true={showSubmitButton}>
-                  <lightning-button
-                    label="Submit"
-                    variant="success"
-                    icon-name="utility:check"
-                    onclick={handleFinish}
-                  ></lightning-button>
-                </template>
-                <template if:false={showSubmitButton}>
-                  <div></div>
-                </template>
-              </template>
             </div>
           </div>
         </template>
@@ -281,7 +281,7 @@
   </template>
 
   <!-- ===== SUCCESS SCREEN ===== -->
-  <template if:true={isSuccessMode}>
+  <template lwc:if={isSuccessMode}>
     <div class="success-container">
       <div class="success-card">
         <div class="success-icon-wrap">
