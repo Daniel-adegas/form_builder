@@ -1,7 +1,9 @@
-<?xml version="1.0" encoding="UTF-8"?>
+<?xml version="1.0" encoding="UTF-8" ?>
 <CustomField xmlns="http://soap.sforce.com/2006/04/metadata">
     <fullName>C_Enable_Cross_Field_Validation__c</fullName>
     <defaultValue>false</defaultValue>
+    <description
+  >Enables the Cross-Field Validation property panel in the Form Builder for Date and Number questions. When checked, authors can define cross-field rules stored in C_Cross_Field_Rules_JSON__c; the renderer surfaces rule violations at runtime. Defaults to false (disabled).</description>
     <label>Enable Cross Field Validation</label>
     <trackTrending>false</trackTrending>
     <type>Checkbox</type>
