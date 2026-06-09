@@ -65,6 +65,12 @@ const QUESTION_TYPES = [
 
 const RESPONSE_TYPES = new Set(["Picklist", "Multi-Select", "Checkbox"]);
 
+const MODAL_FOCUSABLE_SELECTOR =
+    'a[href]:not([tabindex="-1"]),button:not([disabled]):not([tabindex="-1"]),' +
+    'textarea:not([disabled]):not([tabindex="-1"]),input:not([disabled]):not([tabindex="-1"]),' +
+    'select:not([disabled]):not([tabindex="-1"]),[tabindex]:not([tabindex="-1"]),' +
+    'lightning-button,lightning-input,lightning-textarea,lightning-combobox';
+
 const TOOLBOX_ITEMS = [
   {
     key: "category",
