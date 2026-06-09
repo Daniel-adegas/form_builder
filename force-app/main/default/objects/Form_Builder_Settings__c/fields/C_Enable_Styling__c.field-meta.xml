@@ -1,9 +1,7 @@
-<?xml version="1.0" encoding="UTF-8" ?>
+<?xml version="1.0" encoding="UTF-8"?>
 <CustomField xmlns="http://soap.sforce.com/2006/04/metadata">
     <fullName>C_Enable_Styling__c</fullName>
     <defaultValue>false</defaultValue>
-    <description
-  >Enables the Styling property panel in the Form Builder visual canvas, allowing per-question and per-form SLDS style configuration. When unchecked, the Styling section is hidden from the builder UI. Defaults to false (disabled).</description>
     <label>Enable Styling</label>
     <trackTrending>false</trackTrending>
     <type>Checkbox</type>

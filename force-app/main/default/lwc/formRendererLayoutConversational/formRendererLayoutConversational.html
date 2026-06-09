@@ -1,81 +1,49 @@
 <template>
-  <section class="conversation-shell">
-    <template if:true={hasConversationHeader}>
-      <div class="conversation-header">
-        <div>
-          <template if:true={currentPageName}>
-            <p class="eyebrow">Page</p>
-            <h2>{currentPageName}</h2>
-          </template>
-          <template if:true={currentPageDescription}>
-            <p class="description">{currentPageDescription}</p>
-          </template>
-        </div>
-      </div>
-    </template>
-
-    <div class="conversation-progress-row">
-      <div
-        class="conversation-progress"
-        role="progressbar"
-        aria-valuenow={activeNumber}
-        aria-valuemin="0"
-        aria-valuemax={totalQuestions}
-        aria-label="Progress through questions"
-      >
-        <div class="conversation-progress-fill" style={progressWidth}></div>
-      </div>
-
-      <span class="counter" aria-live="polite" aria-atomic="true"
-        >{questionCounter}</span
-      >
-    </div>
-
-    <template if:true={hasQuestions}>
-      <article class="question-stage">
-        <div class="question-meta">
-          <span class="question-number">{activeNumber}</span>
-          <span>{activeSectionName}</span>
+    <section class="conversation-shell">
+        <div class="conversation-progress-row">
+            <div class="conversation-progress" role="progressbar" aria-valuenow={activeNumber} aria-valuemin="0" aria-valuemax={totalQuestions} aria-label="Progress through questions">
+                <div class="conversation-progress-fill" style={progressWidth}></div>
+            </div>
+        
+            <span class="counter">{questionCounter}</span>
         </div>
 
-        <c-form-question
-          question={activeQuestion}
-          section-id={activeQuestion.sectionId}
-          read-only={readOnly}
-          feature-settings={featureSettings}
-          onvaluechange={handleValueChange}
-        ></c-form-question>
+        <template if:true={hasQuestions}>
+            <article class="question-stage">
+                <div class="question-meta">
+                    <span class="question-number">{activeNumber}</span>
+                    <span>{activeSectionName}</span>
+                </div>
 
-        <template if:true={hasInlineValidationError}>
-          <div
-            class="inline-validation-error"
-            role="alert"
-            aria-live="assertive"
-          >
-            {inlineValidationMessage}
-          </div>
+                <c-form-question
+                    question={activeQuestion}
+                    section-id={activeQuestion.sectionId}
+                    read-only={readOnly}
+                    feature-settings={featureSettings}
+                    onvaluechange={handleValueChange}
+                ></c-form-question>
+
+                <div class="conversation-actions">
+                    <lightning-button
+                        label="Previous"
+                        variant="neutral"
+                        onclick={handlePrevious}
+                        disabled={isFirstQuestion}
+                    ></lightning-button>
+
+                    <lightning-button
+                        label={nextLabel}
+                        variant="brand"
+                        onclick={handleNext}
+                    ></lightning-button>
+                </div>
+            </article>
         </template>
 
-        <div class="conversation-actions">
-          <lightning-button
-            label="Previous"
-            variant="neutral"
-            onclick={handlePrevious}
-            disabled={isPreviousDisabled}
-          ></lightning-button>
-
-          <lightning-button
-            label={nextLabel}
-            variant="brand"
-            onclick={handleNext}
-            disabled={isLastStepSubmitDisabled}
-          ></lightning-button>
-        </div>
-      </article>
-    </template>
-
-    <template if:false={hasQuestions}>
-      <div class="empty-state">No questions available on this page.</div>
-    </template>
-  </section>
+        <template if:false={hasQuestions}>
+            <div class="empty-state">
+                No questions available on this page.
+            </div>
+        </template>
+    </section>
 </template>
