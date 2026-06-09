@@ -1,0 +1,39 @@
+<template>
+  <section class="card-layout">
+    <div class="page-header">
+      <h2>{currentPageName}</h2>
+
+      <template if:true={currentPageDescription}>
+        <p class="page-description">{currentPageDescription}</p>
+      </template>
+    </div>
+
+    <template if:true={hasQuestions}>
+      <div class="question-card-grid">
+        <template for:each={questionCards} for:item="quest">
+          <article class="question-card" key={quest.questionId}>
+            <div class="question-card-header">
+              <span class="section-label">{quest.sectionName}</span>
+
+              <template if:true={quest.isBonusSection}>
+                <span class="bonus-badge">Bonus</span>
+              </template>
+            </div>
+
+            <c-form-question
+              question={quest}
+              section-id={quest.sectionId}
+              read-only={readOnly}
+              feature-settings={featureSettings}
+              onvaluechange={handleValueChange}
+            ></c-form-question>
+          </article>
+        </template>
+      </div>
+    </template>
+
+    <template if:false={hasQuestions}>
+      <div class="empty-state">No questions on this page.</div>
+    </template>
+  </section>
+</template>
