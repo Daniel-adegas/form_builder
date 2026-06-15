@@ -169,6 +169,18 @@
   color: var(--slds-g-color-neutral-base-10);
   cursor: default;
 }
+.preview-page-badge {
+  background: var(--slds-g-color-brand-base-50);
+  color: var(--slds-g-color-neutral-base-100);
+}
+.preview-section-title {
+  color: var(--slds-g-color-success-base-40);
+  border-bottom: 1px solid var(--slds-g-color-border-base-2);
+  padding-bottom: 6px;
+}
+.preview-table-placeholder {
+  background: var(--slds-g-color-neutral-base-95);
+}
 
 /* Badges */
 .type-badge {

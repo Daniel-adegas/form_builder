@@ -282,6 +282,14 @@ export default class FormBuilderVisual extends LightningElement {
     return t === "section" || t === "question";
   }
 
+  get isNotRepositoryAssetEditUi() {
+    return !this.repositoryAssetEditUi;
+  }
+
+  get isEditMode() {
+    return !this.showPreview;
+  }
+
   /** Hide left toolbox entirely when editing a library question only. */
   get showRepositoryToolbox() {
     if (!this.repositoryMode) {
@@ -1203,6 +1211,23 @@ export default class FormBuilderVisual extends LightningElement {
     return null;
   }
 
+  _getModalRootByTrapKey(trapKey) {
+    switch (trapKey) {
+      case "newForm":
+        return this.refs.modalRootNewForm ?? null;
+      case "repository":
+        return this.refs.modalRootRepository ?? null;
+      case "promote":
+        return this.refs.modalRootPromote ?? null;
+      case "config":
+        return this.refs.modalRootConfig ?? null;
+      case "clone":
+        return this.refs.modalRootClone ?? null;
+      default:
+        return null;
+    }
+  }
+
   _setupModalFocusTrap(trapKey) {
     if (!this._boundModalKeydown) {
       this._boundModalKeydown = this._handleModalKeydownCapture.bind(this);
@@ -1236,9 +1261,7 @@ export default class FormBuilderVisual extends LightningElement {
     if (this._modalTrapKey !== trapKey) {
       return;
     }
-    const modalRoot = this.template.querySelector(
-      `[data-modal-root="${trapKey}"]`
-    );
+    const modalRoot = this._getModalRootByTrapKey(trapKey);
     if (!modalRoot) {
       return;
     }
@@ -1269,9 +1292,7 @@ export default class FormBuilderVisual extends LightningElement {
     if (!trapKey) {
       return;
     }
-    const modalRoot = this.template.querySelector(
-      `[data-modal-root="${trapKey}"]`
-    );
+    const modalRoot = this._getModalRootByTrapKey(trapKey);
     if (!modalRoot) {
       return;
     }
@@ -2984,7 +3005,7 @@ export default class FormBuilderVisual extends LightningElement {
   }
 
   handlePropertiesPanelKeydown(event) {
-    const panel = this.template.querySelector(".properties-panel");
+    const panel = this.refs.propertiesPanel;
     if (!panel) {
       return;
     }
@@ -3025,11 +3046,7 @@ export default class FormBuilderVisual extends LightningElement {
     }
 
     event.preventDefault();
-    const headers = [
-      ...this.template.querySelectorAll(
-        ".properties-panel .prop-section-header"
-      )
-    ];
+    const headers = [...panel.querySelectorAll(".prop-section-header")];
     const idx = headers.indexOf(header);
     if (idx === -1 || !headers.length) {
       return;

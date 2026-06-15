@@ -1,5 +1,5 @@
 <template>
-  <template if:true={row.isCategoryRow}>
+  <template lwc:if={row.isCategoryRow}>
     <div
       class={categoryHeaderClass}
       data-elementtype="category"
@@ -28,14 +28,14 @@
           class="slds-m-right_x-small"
         ></lightning-icon>
         {row.Name}
-        <template if:true={row.C_Description__c}>
+        <template lwc:if={row.C_Description__c}>
           <span class="category-desc-badge">{row.C_Description__c}</span>
         </template>
-        <template if:true={row.isDependent}>
+        <template lwc:if={row.isDependent}>
           <span class="type-badge dep-badge">Conditional</span>
         </template>
       </span>
-      <template if:false={suppressRepositoryChrome}>
+      <template lwc:if={showRepositoryChrome}>
         <lightning-button-icon
           icon-name="utility:add"
           alternative-text="Add Page"
@@ -50,8 +50,8 @@
     </div>
   </template>
 
-  <template if:true={row.isRootPagesRow}>
-    <template if:false={suppressRepositoryChrome}>
+  <template lwc:if={row.isRootPagesRow}>
+    <template lwc:if={showRepositoryChrome}>
       <div
         class="canvas-root-toolbar slds-grid slds-grid_align-spread slds-p-bottom_x-small slds-p-horizontal_small"
       >
@@ -71,9 +71,9 @@
     </template>
   </template>
 
-  <template if:false={row.hidePageBody}>
+  <template lwc:if={showPageBody}>
     <div class="canvas-category-body">
-      <template if:false={suppressRepositoryChrome}>
+      <template lwc:if={showRepositoryChrome}>
         <c-form-builder-drop-zone
           dropzone={row.pageDropzone}
           accepts="page"
@@ -87,7 +87,7 @@
         ></c-form-builder-drop-zone>
       </template>
 
-      <template if:true={row.hasPages}>
+      <template lwc:if={row.hasPages}>
         <template for:each={row.pages} for:item="page">
           <c-form-builder-page-card
             key={page.Id}
@@ -103,8 +103,7 @@
           ></c-form-builder-page-card>
         </template>
       </template>
-
-      <template if:false={row.hasPages}>
+      <template lwc:else>
         <c-form-builder-drop-zone
           dropzone={row.pageDropzone}
           accepts="page"

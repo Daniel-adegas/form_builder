@@ -293,10 +293,10 @@ private class FormServiceTest {
 
   @IsTest
   static void testGetFormStructureWithMeta_SOQLWithinBounds() {
-    // Before fix: loadStructure ran twice inside getFormStructureWithMeta,
-    // producing ~13 queries. After fix the ceiling is 8
-    // (1 C_Form + 5 in loadStructure + 1 C_Category + 1 extra C_Page for category mapping
-    //  that is now gone → actually 7). Allow 8 as a safe upper bound.
+    // Query budget for getFormStructureWithMeta (single loadStructureInternal pass):
+    //   1 C_Form + 4 structure (pages/sections/questions/responses)
+    //   + up to 5 DependencyQueryUtil branches + 1 C_Category = 11 with full fixture.
+    // A duplicate loadStructure call would roughly double the structure queries (~20+).
     C_Form__c form = [
       SELECT Id
       FROM C_Form__c
@@ -310,8 +310,8 @@ private class FormServiceTest {
     Test.stopTest();
 
     Assert.isTrue(
-      queriesUsed <= 8,
-      'getFormStructureWithMeta should use at most 8 SOQL queries; used: ' +
+      queriesUsed <= 11,
+      'getFormStructureWithMeta should use at most 11 SOQL queries; used: ' +
       queriesUsed
     );
   }
@@ -428,6 +428,105 @@ private class FormServiceTest {
     );
   }
 
+  @IsTest
+  static void testGetFormStructureWithMeta_FormLevelDependencies() {
+    C_Form__c form = [
+      SELECT Id
+      FROM C_Form__c
+      WHERE C_Status__c = 'Published'
+      LIMIT 1
+    ];
+    C_Response__c resp = [SELECT Id FROM C_Response__c LIMIT 1];
+    List<C_Section__c> sections = [SELECT Id FROM C_Section__c LIMIT 2];
+
+    C_Dependency__c dep = new C_Dependency__c(
+      C_Controlling_Response__c = resp.Id,
+      C_Target_Type__c = 'Section',
+      C_Target_Section__c = sections[1].Id,
+      C_Action__c = 'Show'
+    );
+    insert dep;
+
+    Test.startTest();
+    FormService.FormStructure_Wrapper wrapper = FormService.getFormStructureWithMeta(
+      form.Id
+    );
+    Test.stopTest();
+
+    Assert.isNotNull(
+      wrapper.dependencies,
+      'Form-level dependencies should be initialised'
+    );
+    Assert.areEqual(
+      1,
+      wrapper.dependencies.size(),
+      'Form-level dependencies should include the inserted rule'
+    );
+    Assert.areEqual(
+      resp.Id,
+      wrapper.dependencies[0].controllingResponse,
+      'Controlling response should match'
+    );
+    Assert.areEqual(
+      2,
+      wrapper.pages.size(),
+      'Multi-page fixture should return 2 pages'
+    );
+    Assert.areEqual(
+      0,
+      wrapper.pages[0].dependencies.size(),
+      'Page wrappers should not duplicate form-wide dependencies'
+    );
+    Assert.areEqual(
+      0,
+      wrapper.pages[1].dependencies.size(),
+      'Page 2+ should not carry form-wide dependencies'
+    );
+  }
+
+  @IsTest
+  static void testGetFormStructureById_DependenciesOnFirstPageOnly() {
+    C_Form__c form = [
+      SELECT Id
+      FROM C_Form__c
+      WHERE C_Status__c = 'Published'
+      LIMIT 1
+    ];
+    C_Response__c resp = [SELECT Id FROM C_Response__c LIMIT 1];
+    List<C_Section__c> sections = [SELECT Id FROM C_Section__c LIMIT 2];
+
+    C_Dependency__c dep = new C_Dependency__c(
+      C_Controlling_Response__c = resp.Id,
+      C_Target_Type__c = 'Section',
+      C_Target_Section__c = sections[1].Id,
+      C_Action__c = 'Hide'
+    );
+    insert dep;
+
+    Test.startTest();
+    List<FormService.Page_Wrapper> pages = FormService.getFormStructureById(
+      form.Id
+    );
+    Test.stopTest();
+
+    Assert.areEqual(2, pages.size(), 'Should return 2 pages');
+    Assert.areEqual(
+      1,
+      pages[0].dependencies.size(),
+      'Page 1 carries form-wide deps for legacy getFormStructureById callers'
+    );
+    Assert.areEqual(
+      0,
+      pages[1].dependencies.size(),
+      'Page 2 should not carry duplicated dependencies'
+    );
+    Assert.areEqual(
+      'Hide',
+      pages[0].dependencies[0].action,
+      'Dependency action should be Hide'
+    );
+  }
+
   // ── Existing tests ──────────────────────────────────────────────────────────
 
   @IsTest
@@ -450,6 +549,97 @@ private class FormServiceTest {
       updated.C_Draft_State_JSON__c,
       'Draft JSON should be persisted'
     );
+  }
+
+  @IsTest
+  static void testSaveFormSubmission_RejectsNonOwnerNonAdmin() {
+    C_Form__c form = [SELECT Id FROM C_Form__c LIMIT 1];
+    User otherOwner = createOtherFormServiceTestUser();
+    C_Form_Submission__c submission;
+    System.runAs(otherOwner) {
+      submission = TestDataFactory.createSubmission(form.Id);
+    }
+
+    FeatureUtil.testIsFormBuilderAdminOverride = false;
+    String draftJson = '{"page":1,"answers":{"q1":"blocked"}}';
+
+    C_Form_Submission__c visibleSubmission = [
+      SELECT OwnerId
+      FROM C_Form_Submission__c
+      WHERE Id = :submission.Id
+    ];
+    Assert.areEqual(
+      otherOwner.Id,
+      visibleSubmission.OwnerId,
+      'Submission should be owned by the other user'
+    );
+    Assert.areNotEqual(
+      UserInfo.getUserId(),
+      visibleSubmission.OwnerId,
+      'Running user should not own the submission under test'
+    );
+
+    Test.startTest();
+    Boolean caughtException = false;
+    try {
+      FormService.saveFormSubmission(submission.Id, draftJson);
+    } catch (AuraHandledException e) {
+      caughtException = true;
+      Assert.isNotNull(e.getMessage(), 'Exception message should not be null');
+    } finally {
+      FeatureUtil.testIsFormBuilderAdminOverride = null;
+    }
+    Test.stopTest();
+
+    Assert.isTrue(
+      caughtException,
+      'Expected AuraHandledException for non-owner non-admin save'
+    );
+
+    C_Form_Submission__c unchanged = [
+      SELECT C_Draft_State_JSON__c
+      FROM C_Form_Submission__c
+      WHERE Id = :submission.Id
+    ];
+    Assert.isNull(
+      unchanged.C_Draft_State_JSON__c,
+      'Draft JSON should not be persisted when save is rejected'
+    );
+  }
+
+  private static User createOtherFormServiceTestUser() {
+    Profile stdProfile = [
+      SELECT Id
+      FROM Profile
+      WHERE Name = 'Standard User'
+      LIMIT 1
+    ];
+    String unique = String.valueOf(System.currentTimeMillis());
+    User u = new User(
+      Alias = 'othownr',
+      Email = 'othownr' + unique + '@formbuilder.test',
+      EmailEncodingKey = 'UTF-8',
+      LastName = 'OtherOwner',
+      LanguageLocaleKey = 'en_US',
+      LocaleSidKey = 'en_US',
+      ProfileId = stdProfile.Id,
+      TimeZoneSidKey = 'America/Los_Angeles',
+      Username = 'othownr' + unique + '@formbuilder.test'
+    );
+    insert u;
+
+    PermissionSet userPs = [
+      SELECT Id
+      FROM PermissionSet
+      WHERE Name = 'Forms_User'
+      LIMIT 1
+    ];
+    insert new PermissionSetAssignment(
+      AssigneeId = u.Id,
+      PermissionSetId = userPs.Id
+    );
+
+    return u;
   }
 
   @IsTest

@@ -13,6 +13,14 @@ export default class FormBuilderCategoryCard extends LightningElement {
   @api pageAddDisabled = false;
   @api pageAddDisabledTitle = "";
 
+  get showRepositoryChrome() {
+    return !this.suppressRepositoryChrome;
+  }
+
+  get showPageBody() {
+    return !this.row?.hidePageBody;
+  }
+
   get categoryHeaderClass() {
     let cls = "canvas-category-header";
     if (this.row?.isCategoryRow && this.draggingSourceId === this.row.Id) {

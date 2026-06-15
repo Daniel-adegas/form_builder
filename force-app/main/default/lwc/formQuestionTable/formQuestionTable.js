@@ -21,6 +21,22 @@ export default class FormQuestionTable extends LightningElement {
   @track rows = [];
   rowCounter = 0;
 
+  normalizeColumnDefinition(col, index) {
+    if (typeof col === "string") {
+      return { label: col, fieldName: "col" + index };
+    }
+    if (!col || typeof col !== "object") {
+      return {
+        label: "Column " + (index + 1),
+        fieldName: "col" + index
+      };
+    }
+    const label =
+      col.label ?? col.columnName ?? col.name ?? "Column " + (index + 1);
+    const fieldName = col.fieldName ?? col.columnId ?? "col" + index;
+    return { label, fieldName: String(fieldName) };
+  }
+
   get columns() {
     if (!this.columnConfig) {
       return [
@@ -29,16 +45,21 @@ export default class FormQuestionTable extends LightningElement {
       ];
     }
     if (typeof this.columnConfig === "object") {
-      return Array.isArray(this.columnConfig)
+      const raw = Array.isArray(this.columnConfig)
         ? this.columnConfig
         : [this.columnConfig];
+      return raw.map((col, index) =>
+        this.normalizeColumnDefinition(col, index)
+      );
     }
 
     // Try JSON format first
     try {
       const parsed = JSON.parse(this.columnConfig);
       if (Array.isArray(parsed)) {
-        return parsed;
+        return parsed.map((col, index) =>
+          this.normalizeColumnDefinition(col, index)
+        );
       }
     } catch {
       // Not JSON, continue to comma-separated parsing

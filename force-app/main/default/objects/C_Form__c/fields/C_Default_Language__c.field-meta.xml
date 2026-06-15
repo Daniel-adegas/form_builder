@@ -1,6 +1,8 @@
-<?xml version="1.0" encoding="UTF-8"?>
+<?xml version="1.0" encoding="UTF-8" ?>
 <CustomField xmlns="http://soap.sforce.com/2006/04/metadata">
     <fullName>C_Default_Language__c</fullName>
+    <description
+  >Default language for form content (API code: en, fr, nl, de, pt). The renderer loads C_Translation__c records for other languages when translations are enabled.</description>
     <externalId>false</externalId>
     <label>Default Language</label>
     <required>false</required>

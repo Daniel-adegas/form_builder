@@ -1,5 +1,5 @@
 <template>
-  <template if:true={isLoading}>
+  <template lwc:if={isLoading}>
     <lightning-spinner
       alternative-text="Loading"
       size="medium"
@@ -7,7 +7,7 @@
   </template>
 
   <!-- ==================== FORM LIST VIEW ==================== -->
-  <template if:true={isListView}>
+  <template lwc:if={isListView}>
     <lightning-card title="Visual Form Builder" icon-name="custom:custom63">
       <lightning-button
         label="New Form"
@@ -28,7 +28,7 @@
             onchange={handleFormSearch}
           ></lightning-input>
         </div>
-        <template if:true={hasFilteredForms}>
+        <template lwc:if={hasFilteredForms}>
           <template for:each={filteredForms} for:item="form">
             <div
               key={form.Id}
@@ -40,14 +40,14 @@
                 <div class="slds-col slds-grow">
                   <div class="form-card-title-row">
                     <h3 class="slds-text-heading_small">{form.Name}</h3>
-                    <template if:true={form.isLatest}>
+                    <template lwc:if={form.isLatest}>
                       <span class="latest-badge">Latest</span>
                     </template>
-                    <template if:true={form.displayVersion}>
+                    <template lwc:if={form.displayVersion}>
                       <span class="version-badge">{form.displayVersion}</span>
                     </template>
                   </div>
-                  <template if:true={form.C_Description__c}>
+                  <template lwc:if={form.C_Description__c}>
                     <p
                       class="slds-text-body_small slds-text-color_weak slds-m-top_xx-small form-card-desc"
                     >
@@ -70,7 +70,7 @@
             </div>
           </template>
         </template>
-        <template if:false={hasFilteredForms}>
+        <template lwc:else>
           <div class="slds-align_absolute-center slds-p-around_large">
             <div class="slds-text-align_center">
               <lightning-icon
@@ -78,7 +78,7 @@
                 size="large"
                 class="slds-m-bottom_small"
               ></lightning-icon>
-              <template if:true={formSearchTerm}>
+              <template lwc:if={formSearchTerm}>
                 <p class="slds-text-heading_small slds-m-top_small">
                   No forms match your search
                 </p>
@@ -86,7 +86,7 @@
                   Try a different search term
                 </p>
               </template>
-              <template if:false={formSearchTerm}>
+              <template lwc:else>
                 <p class="slds-text-heading_small slds-m-top_small">
                   No forms yet
                 </p>
@@ -101,8 +101,9 @@
     </lightning-card>
 
     <!-- New Form Modal -->
-    <template if:true={showNewFormModal}>
+    <template lwc:if={showNewFormModal}>
       <section
+        lwc:ref="modalRootNewForm"
         role="dialog"
         aria-modal="true"
         aria-labelledby="form-builder-new-form-title"
@@ -163,10 +164,10 @@
   </template>
 
   <!-- ==================== BUILDER VIEW ==================== -->
-  <template if:true={isBuilderView}>
+  <template lwc:if={isBuilderView}>
     <div class={builderLayoutClass}>
       <!-- ===== LEFT: TOOLBOX ===== -->
-      <template if:true={showRepositoryToolbox}>
+      <template lwc:if={showRepositoryToolbox}>
         <div class="toolbox-panel">
           <h3 class="slds-text-heading_small slds-m-bottom_small">Toolbox</h3>
           <p
@@ -199,7 +200,7 @@
       <div class={canvasClass}>
         <!-- Toolbar -->
         <div class="toolbar">
-          <template if:true={showBuilderBackButton}>
+          <template lwc:if={showBuilderBackButton}>
             <lightning-button-icon
               icon-name="utility:back"
               alternative-text="Back"
@@ -220,7 +221,7 @@
             icon-name={previewButtonIcon}
             onclick={togglePreview}
           ></lightning-button>
-          <template if:false={repositoryAssetEditUi}>
+          <template lwc:if={isNotRepositoryAssetEditUi}>
             <lightning-button
               label="Dependencies"
               variant={dependencyButtonVariant}
@@ -228,8 +229,8 @@
               onclick={toggleDependencyBuilder}
             ></lightning-button>
           </template>
-          <template if:true={showFieldMapping}>
-            <template if:false={repositoryAssetEditUi}>
+          <template lwc:if={showFieldMapping}>
+            <template lwc:if={isNotRepositoryAssetEditUi}>
               <lightning-button
                 label="Field Mapping"
                 variant={fieldMappingButtonVariant}
@@ -238,7 +239,7 @@
               ></lightning-button>
             </template>
           </template>
-          <template if:true={showCloneInToolbar}>
+          <template lwc:if={showCloneInToolbar}>
             <lightning-button
               label="Clone"
               icon-name="utility:copy"
@@ -247,7 +248,7 @@
               class="slds-m-left_x-small"
             ></lightning-button>
           </template>
-          <template if:true={showConfigInToolbar}>
+          <template lwc:if={showConfigInToolbar}>
             <lightning-button
               label="Config"
               icon-name="utility:settings"
@@ -259,13 +260,13 @@
         </div>
 
         <!-- Dependency Builder Panel -->
-        <template if:true={showDependencyBuilder}>
+        <template lwc:if={showDependencyBuilder}>
           <div class="slds-box slds-m-bottom_medium">
             <h3 class="slds-text-heading_small slds-m-bottom_small">
               Dependency Builder
             </h3>
 
-            <template if:true={hasDependencies}>
+            <template lwc:if={hasDependencies}>
               <table
                 class="slds-table slds-table_cell-buffer slds-table_bordered slds-m-bottom_small"
               >
@@ -370,7 +371,7 @@
         </template>
 
         <!-- Field Mapping Panel -->
-        <template if:true={showFieldMappingPanel}>
+        <template lwc:if={showFieldMappingPanel}>
           <div class="slds-box slds-m-bottom_medium">
             <c-form-target-builder
               form-id={selectedFormId}
@@ -382,9 +383,9 @@
         </template>
 
         <!-- ===== EDIT MODE CANVAS ===== -->
-        <template if:false={showPreview}>
-          <template if:true={canvasEditHasRows}>
-            <template if:false={repositoryAssetEditUi}>
+        <template lwc:if={isEditMode}>
+          <template lwc:if={canvasEditHasRows}>
+            <template lwc:if={isNotRepositoryAssetEditUi}>
               <c-form-builder-drop-zone
                 dropzone="canvas"
                 accepts="category,page"
@@ -424,7 +425,7 @@
                   page-add-disabled={isConversationalPageAddBlocked}
                   page-add-disabled-title={conversationalLayoutDisabledMessage}
                 ></c-form-builder-category-card>
-                <template if:false={repositoryAssetEditUi}>
+                <template lwc:if={isNotRepositoryAssetEditUi}>
                   <c-form-builder-drop-zone
                     dropzone="canvas"
                     accepts="category,page"
@@ -440,7 +441,7 @@
             </template>
           </template>
 
-          <template if:false={canvasEditHasRows}>
+          <template lwc:else>
             <div
               class="empty-canvas"
               data-dropzone="canvas"
@@ -464,7 +465,7 @@
                 Add a page to start (a category is created automatically), or
                 add a category first.
               </p>
-              <template if:false={repositoryAssetEditUi}>
+              <template lwc:if={isNotRepositoryAssetEditUi}>
                 <div class="slds-m-top_medium">
                   <lightning-button
                     label="Add Page"
@@ -488,12 +489,12 @@
         </template>
 
         <!-- ===== PREVIEW MODE ===== -->
-        <template if:true={showPreview}>
+        <template lwc:if={showPreview}>
           <div class="preview-mode">
-            <template if:true={hasCanvasContent}>
+            <template lwc:if={hasCanvasContent}>
               <template for:each={displayCanvasRows} for:item="row">
                 <div key={row.rowKey} class="slds-m-bottom_large">
-                  <template if:true={row.isCategoryRow}>
+                  <template lwc:if={row.isCategoryRow}>
                     <div
                       class="slds-grid slds-grid_align-center slds-m-bottom_small"
                     >
@@ -506,10 +507,7 @@
                           key={page.Id}
                           class="slds-p-horizontal_small slds-text-align_center"
                         >
-                          <div
-                            class="slds-badge"
-                            style="background: #0070d2; color: white"
-                          >
+                          <div class="slds-badge preview-page-badge">
                             {page.Name}
                           </div>
                         </div>
@@ -521,20 +519,15 @@
                     <div key={page.Id} class="canvas-page">
                       <div class="canvas-page-header">{page.Name}</div>
                       <div class="slds-p-around_medium">
-                        <template if:true={page.hasSections}>
+                        <template lwc:if={page.hasSections}>
                           <template for:each={page.sections} for:item="section">
                             <div key={section.Id} class="slds-m-bottom_medium">
                               <h4
-                                class="slds-text-heading_small slds-m-bottom_small"
-                                style="
-                                  color: #04844b;
-                                  border-bottom: 1px solid #e5e5e5;
-                                  padding-bottom: 6px;
-                                "
+                                class="slds-text-heading_small slds-m-bottom_small preview-section-title"
                               >
                                 {section.Name}
                               </h4>
-                              <template if:true={section.hasQuestions}>
+                              <template lwc:if={section.hasQuestions}>
                                 <template
                                   for:each={section.questions}
                                   for:item="question"
@@ -546,7 +539,7 @@
                                     <label class="slds-form-element__label">
                                       {question.displayLabel}
                                       <template
-                                        if:true={question.C_Is_Required__c}
+                                        lwc:if={question.C_Is_Required__c}
                                       >
                                         <abbr
                                           class="slds-required"
@@ -556,9 +549,7 @@
                                       </template>
                                     </label>
                                     <div class="slds-form-element__control">
-                                      <template
-                                        if:true={question.isTextPreview}
-                                      >
+                                      <template lwc:if={question.isTextPreview}>
                                         <input
                                           type="text"
                                           class="slds-input"
@@ -567,7 +558,7 @@
                                         />
                                       </template>
                                       <template
-                                        if:true={question.isLongTextPreview}
+                                        lwc:if={question.isLongTextPreview}
                                       >
                                         <textarea
                                           class="slds-textarea"
@@ -576,7 +567,7 @@
                                         ></textarea>
                                       </template>
                                       <template
-                                        if:true={question.isNumberPreview}
+                                        lwc:if={question.isNumberPreview}
                                       >
                                         <input
                                           type="number"
@@ -585,9 +576,7 @@
                                           placeholder={question.C_Placeholder__c}
                                         />
                                       </template>
-                                      <template
-                                        if:true={question.isDatePreview}
-                                      >
+                                      <template lwc:if={question.isDatePreview}>
                                         <input
                                           type="date"
                                           class="slds-input"
@@ -595,7 +584,7 @@
                                         />
                                       </template>
                                       <template
-                                        if:true={question.isCheckboxPreview}
+                                        lwc:if={question.isCheckboxPreview}
                                       >
                                         <div class="slds-checkbox">
                                           <input
@@ -617,9 +606,7 @@
                                           </label>
                                         </div>
                                       </template>
-                                      <template
-                                        if:true={question.isFilePreview}
-                                      >
+                                      <template lwc:if={question.isFilePreview}>
                                         <div
                                           class="slds-file-selector slds-file-selector_files"
                                         >
@@ -631,10 +618,10 @@
                                         </div>
                                       </template>
                                       <template
-                                        if:true={question.isPicklistPreview}
+                                        lwc:if={question.isPicklistPreview}
                                       >
                                         <template
-                                          if:true={question.hasResponses}
+                                          lwc:if={question.hasResponses}
                                         >
                                           <template
                                             for:each={question.responses}
@@ -667,10 +654,10 @@
                                         </template>
                                       </template>
                                       <template
-                                        if:true={question.isMultiSelectPreview}
+                                        lwc:if={question.isMultiSelectPreview}
                                       >
                                         <template
-                                          if:true={question.hasResponses}
+                                          lwc:if={question.hasResponses}
                                         >
                                           <template
                                             for:each={question.responses}
@@ -702,11 +689,10 @@
                                         </template>
                                       </template>
                                       <template
-                                        if:true={question.isTablePreview}
+                                        lwc:if={question.isTablePreview}
                                       >
                                         <div
-                                          class="slds-box slds-p-around_small"
-                                          style="background: #f4f6f9"
+                                          class="slds-box slds-p-around_small preview-table-placeholder"
                                         >
                                           <p
                                             class="slds-text-body_small slds-text-color_weak"
@@ -728,7 +714,7 @@
                 </div>
               </template>
             </template>
-            <template if:false={hasCanvasContent}>
+            <template lwc:else>
               <div class="empty-canvas">
                 <p class="slds-text-heading_small">No content to preview</p>
               </div>
@@ -738,14 +724,18 @@
       </div>
 
       <!-- ===== RIGHT: PROPERTIES PANEL ===== -->
-      <div class="properties-panel" onkeydown={handlePropertiesPanelKeydown}>
+      <div
+        lwc:ref="propertiesPanel"
+        class="properties-panel"
+        onkeydown={handlePropertiesPanelKeydown}
+      >
         <h3 class="slds-text-heading_small slds-m-bottom_small">
           {propertiesPanelTitle}
         </h3>
 
-        <template if:true={hasSelectedElement}>
+        <template lwc:if={hasSelectedElement}>
           <!-- Form Properties -->
-          <template if:true={isFormProperties}>
+          <template lwc:if={isFormProperties}>
             <lightning-input
               label="Name"
               value={selectedElement.Name}
@@ -786,7 +776,7 @@
           </template>
 
           <!-- Category Properties -->
-          <template if:true={isCategoryProperties}>
+          <template lwc:if={isCategoryProperties}>
             <div class="prop-section">
               <div
                 class="prop-section-header"
@@ -803,7 +793,7 @@
                 ></lightning-icon>
                 <span>Basic</span>
               </div>
-              <template if:true={propSections.basic.open}>
+              <template lwc:if={propSections.basic.open}>
                 <div class="prop-section-body">
                   <lightning-input
                     label="Category Name"
@@ -863,7 +853,7 @@
                 ></lightning-icon>
                 <span>Dependencies</span>
               </div>
-              <template if:true={propSections.dependencies.open}>
+              <template lwc:if={propSections.dependencies.open}>
                 <div class="prop-section-body">
                   <c-form-dependency-inline
                     element-id={selectedElement.Id}
@@ -879,7 +869,7 @@
                 </div>
               </template>
             </div>
-            <template if:true={showTranslations}>
+            <template lwc:if={showTranslations}>
               <div class="prop-section">
                 <div
                   class="prop-section-header"
@@ -896,7 +886,7 @@
                   ></lightning-icon>
                   <span>Translations</span>
                 </div>
-                <template if:true={propSections.translations.open}>
+                <template lwc:if={propSections.translations.open}>
                   <div class="prop-section-body">
                     <c-form-translation-inline
                       element-id={selectedElement.Id}
@@ -911,7 +901,7 @@
           </template>
 
           <!-- Page Properties -->
-          <template if:true={isPageProperties}>
+          <template lwc:if={isPageProperties}>
             <div class="prop-section">
               <div
                 class="prop-section-header"
@@ -928,7 +918,7 @@
                 ></lightning-icon>
                 <span>Basic</span>
               </div>
-              <template if:true={propSections.basic.open}>
+              <template lwc:if={propSections.basic.open}>
                 <div class="prop-section-body">
                   <lightning-input
                     label="Page Name"
@@ -971,7 +961,7 @@
                 ></lightning-icon>
                 <span>Dependencies</span>
               </div>
-              <template if:true={propSections.dependencies.open}>
+              <template lwc:if={propSections.dependencies.open}>
                 <div class="prop-section-body">
                   <c-form-dependency-inline
                     element-id={selectedElement.Id}
@@ -987,7 +977,7 @@
                 </div>
               </template>
             </div>
-            <template if:true={showTranslations}>
+            <template lwc:if={showTranslations}>
               <div class="prop-section">
                 <div
                   class="prop-section-header"
@@ -1004,7 +994,7 @@
                   ></lightning-icon>
                   <span>Translations</span>
                 </div>
-                <template if:true={propSections.translations.open}>
+                <template lwc:if={propSections.translations.open}>
                   <div class="prop-section-body">
                     <c-form-translation-inline
                       element-id={selectedElement.Id}
@@ -1019,7 +1009,7 @@
           </template>
 
           <!-- Section Properties -->
-          <template if:true={isSectionProperties}>
+          <template lwc:if={isSectionProperties}>
             <div class="prop-section">
               <div
                 class="prop-section-header"
@@ -1036,7 +1026,7 @@
                 ></lightning-icon>
                 <span>Basic</span>
               </div>
-              <template if:true={propSections.basic.open}>
+              <template lwc:if={propSections.basic.open}>
                 <div class="prop-section-body">
                   <lightning-input
                     label="Section Name"
@@ -1056,7 +1046,7 @@
                 </div>
               </template>
             </div>
-            <template if:true={showScoring}>
+            <template lwc:if={showScoring}>
               <div class="prop-section">
                 <div
                   class="prop-section-header"
@@ -1073,7 +1063,7 @@
                   ></lightning-icon>
                   <span>Scoring</span>
                 </div>
-                <template if:true={propSections.scoring.open}>
+                <template lwc:if={propSections.scoring.open}>
                   <div class="prop-section-body">
                     <lightning-input
                       label="Weight"
@@ -1103,7 +1093,7 @@
                 </template>
               </div>
             </template>
-            <template if:false={repositoryAssetEditUi}>
+            <template lwc:if={isNotRepositoryAssetEditUi}>
               <div class="prop-section">
                 <div
                   class="prop-section-header"
@@ -1120,7 +1110,7 @@
                   ></lightning-icon>
                   <span>Dependencies</span>
                 </div>
-                <template if:true={propSections.dependencies.open}>
+                <template lwc:if={propSections.dependencies.open}>
                   <div class="prop-section-body">
                     <c-form-dependency-inline
                       element-id={selectedElement.Id}
@@ -1137,7 +1127,7 @@
                 </template>
               </div>
             </template>
-            <template if:true={showTranslations}>
+            <template lwc:if={showTranslations}>
               <div class="prop-section">
                 <div
                   class="prop-section-header"
@@ -1154,7 +1144,7 @@
                   ></lightning-icon>
                   <span>Translations</span>
                 </div>
-                <template if:true={propSections.translations.open}>
+                <template lwc:if={propSections.translations.open}>
                   <div class="prop-section-body">
                     <c-form-translation-inline
                       element-id={selectedElement.Id}
@@ -1166,7 +1156,7 @@
                 </template>
               </div>
             </template>
-            <template if:true={showRepositoryPromoteInProperties}>
+            <template lwc:if={showRepositoryPromoteInProperties}>
               <div class="prop-section">
                 <div
                   class="prop-section-header"
@@ -1183,7 +1173,7 @@
                   ></lightning-icon>
                   <span>Convert to Public Repository</span>
                 </div>
-                <template if:true={propSections.repository.open}>
+                <template lwc:if={propSections.repository.open}>
                   <div class="prop-section-body">
                     <p class="slds-text-body_small slds-m-bottom_small">
                       Duplicate this section and its questions into the shared
@@ -1202,7 +1192,7 @@
           </template>
 
           <!-- Question Properties -->
-          <template if:true={isQuestionProperties}>
+          <template lwc:if={isQuestionProperties}>
             <div class="prop-section">
               <div
                 class="prop-section-header"
@@ -1219,7 +1209,7 @@
                 ></lightning-icon>
                 <span>Basic</span>
               </div>
-              <template if:true={propSections.basic.open}>
+              <template lwc:if={propSections.basic.open}>
                 <div class="prop-section-body">
                   <lightning-input
                     label="Question Name"
@@ -1267,7 +1257,7 @@
                     onchange={handlePropertyChange}
                     class="slds-m-bottom_small"
                   ></lightning-input>
-                  <template if:true={isSelectedQuestionNumber}>
+                  <template lwc:if={isSelectedQuestionNumber}>
                     <lightning-input
                       label="Decimal Places"
                       type="number"
@@ -1298,7 +1288,7 @@
                 ></lightning-icon>
                 <span>Help &amp; Validation</span>
               </div>
-              <template if:true={propSections.helpValidation.open}>
+              <template lwc:if={propSections.helpValidation.open}>
                 <div class="prop-section-body">
                   <lightning-textarea
                     label="Help Text"
@@ -1322,7 +1312,7 @@
                     onchange={handlePropertyChange}
                     class="slds-m-bottom_small"
                   ></lightning-input>
-                  <template if:true={isSelectedQuestionLongText}>
+                  <template lwc:if={isSelectedQuestionLongText}>
                     <lightning-input
                       label="Max Word Count"
                       type="number"
@@ -1366,7 +1356,7 @@
                 </div>
               </template>
             </div>
-            <template if:true={showCrossFieldRulesInProperties}>
+            <template lwc:if={showCrossFieldRulesInProperties}>
               <div class="prop-section">
                 <div
                   class="prop-section-header"
@@ -1388,7 +1378,7 @@
                     ></span
                   >
                 </div>
-                <template if:true={propSections.crossFieldRules.open}>
+                <template lwc:if={propSections.crossFieldRules.open}>
                   <div class="prop-section-body">
                     <c-form-cross-field-rule-inline
                       rules={parsedCrossFieldRules}
@@ -1402,7 +1392,7 @@
                 </template>
               </div>
             </template>
-            <template if:true={showScoring}>
+            <template lwc:if={showScoring}>
               <div class="prop-section">
                 <div
                   class="prop-section-header"
@@ -1419,7 +1409,7 @@
                   ></lightning-icon>
                   <span>Scoring</span>
                 </div>
-                <template if:true={propSections.scoring.open}>
+                <template lwc:if={propSections.scoring.open}>
                   <div class="prop-section-body">
                     <lightning-input
                       label="Weight"
@@ -1433,7 +1423,7 @@
                 </template>
               </div>
             </template>
-            <template if:true={isSelectedQuestionFile}>
+            <template lwc:if={isSelectedQuestionFile}>
               <div class="prop-section">
                 <div
                   class="prop-section-header"
@@ -1450,7 +1440,7 @@
                   ></lightning-icon>
                   <span>File Options</span>
                 </div>
-                <template if:true={propSections.fileOptions.open}>
+                <template lwc:if={propSections.fileOptions.open}>
                   <div class="prop-section-body">
                     <lightning-input
                       label="Accepted File Types"
@@ -1479,7 +1469,7 @@
                 </template>
               </div>
             </template>
-            <template if:true={isSelectedQuestionTable}>
+            <template lwc:if={isSelectedQuestionTable}>
               <div class="prop-section">
                 <div
                   class="prop-section-header"
@@ -1496,7 +1486,7 @@
                   ></lightning-icon>
                   <span>Table Options</span>
                 </div>
-                <template if:true={propSections.tableOptions.open}>
+                <template lwc:if={propSections.tableOptions.open}>
                   <div class="prop-section-body">
                     <c-form-table-column-builder
                       columns={selectedElement.C_Table_Columns__c}
@@ -1539,7 +1529,7 @@
                 ></lightning-icon>
                 <span>Styling</span>
               </div>
-              <template if:true={propSections.styling.open}>
+              <template lwc:if={propSections.styling.open}>
                 <div class="prop-section-body">
                   <lightning-combobox
                     label="Layout Span"
@@ -1552,7 +1542,7 @@
                 </div>
               </template>
             </div>
-            <template if:false={repositoryAssetEditUi}>
+            <template lwc:if={isNotRepositoryAssetEditUi}>
               <div class="prop-section">
                 <div
                   class="prop-section-header"
@@ -1569,7 +1559,7 @@
                   ></lightning-icon>
                   <span>Dependencies</span>
                 </div>
-                <template if:true={propSections.dependencies.open}>
+                <template lwc:if={propSections.dependencies.open}>
                   <div class="prop-section-body">
                     <c-form-dependency-inline
                       element-id={selectedElement.Id}
@@ -1586,7 +1576,7 @@
                 </template>
               </div>
             </template>
-            <template if:true={showQuestionFieldMappingPanel}>
+            <template lwc:if={showQuestionFieldMappingPanel}>
               <div class="prop-section">
                 <div
                   class="prop-section-header"
@@ -1603,7 +1593,7 @@
                   ></lightning-icon>
                   <span>Field Mapping</span>
                 </div>
-                <template if:true={propSections.fieldMapping.open}>
+                <template lwc:if={propSections.fieldMapping.open}>
                   <div class="prop-section-body">
                     <c-form-field-mapping-inline
                       question-id={selectedElement.Id}
@@ -1616,7 +1606,7 @@
                 </template>
               </div>
             </template>
-            <template if:true={showTranslations}>
+            <template lwc:if={showTranslations}>
               <div class="prop-section">
                 <div
                   class="prop-section-header"
@@ -1633,7 +1623,7 @@
                   ></lightning-icon>
                   <span>Translations</span>
                 </div>
-                <template if:true={propSections.translations.open}>
+                <template lwc:if={propSections.translations.open}>
                   <div class="prop-section-body">
                     <c-form-translation-inline
                       element-id={selectedElement.Id}
@@ -1645,7 +1635,7 @@
                 </template>
               </div>
             </template>
-            <template if:true={showRepositoryPromoteInProperties}>
+            <template lwc:if={showRepositoryPromoteInProperties}>
               <div class="prop-section">
                 <div
                   class="prop-section-header"
@@ -1662,7 +1652,7 @@
                   ></lightning-icon>
                   <span>Convert to Public Repository</span>
                 </div>
-                <template if:true={propSections.repository.open}>
+                <template lwc:if={propSections.repository.open}>
                   <div class="prop-section-body">
                     <p class="slds-text-body_small slds-m-bottom_small">
                       Duplicate this question into the shared library
@@ -1681,7 +1671,7 @@
           </template>
 
           <!-- Response Properties -->
-          <template if:true={isResponseProperties}>
+          <template lwc:if={isResponseProperties}>
             <div class="prop-section">
               <div
                 class="prop-section-header"
@@ -1698,7 +1688,7 @@
                 ></lightning-icon>
                 <span>Basic</span>
               </div>
-              <template if:true={propSections.basic.open}>
+              <template lwc:if={propSections.basic.open}>
                 <div class="prop-section-body">
                   <lightning-input
                     label="Response Name"
@@ -1725,7 +1715,7 @@
                 </div>
               </template>
             </div>
-            <template if:true={showScoring}>
+            <template lwc:if={showScoring}>
               <div class="prop-section">
                 <div
                   class="prop-section-header"
@@ -1742,7 +1732,7 @@
                   ></lightning-icon>
                   <span>Scoring</span>
                 </div>
-                <template if:true={propSections.scoring.open}>
+                <template lwc:if={propSections.scoring.open}>
                   <div class="prop-section-body">
                     <lightning-input
                       label="Points"
@@ -1772,7 +1762,7 @@
                 ></lightning-icon>
                 <span>Options</span>
               </div>
-              <template if:true={propSections.options.open}>
+              <template lwc:if={propSections.options.open}>
                 <div class="prop-section-body">
                   <lightning-input
                     label="Requires Details"
@@ -1809,7 +1799,7 @@
                 ></lightning-icon>
                 <span>Dependencies</span>
               </div>
-              <template if:true={propSections.dependencies.open}>
+              <template lwc:if={propSections.dependencies.open}>
                 <div class="prop-section-body">
                   <c-form-dependency-inline
                     element-id={selectedElement.Id}
@@ -1825,7 +1815,7 @@
                 </div>
               </template>
             </div>
-            <template if:true={showTranslations}>
+            <template lwc:if={showTranslations}>
               <div class="prop-section">
                 <div
                   class="prop-section-header"
@@ -1842,7 +1832,7 @@
                   ></lightning-icon>
                   <span>Translations</span>
                 </div>
-                <template if:true={propSections.translations.open}>
+                <template lwc:if={propSections.translations.open}>
                   <div class="prop-section-body">
                     <c-form-translation-inline
                       element-id={selectedElement.Id}
@@ -1856,7 +1846,7 @@
             </template>
           </template>
 
-          <template if:true={isPropertySaveDisabled}>
+          <template lwc:if={isPropertySaveDisabled}>
             <p
               class="slds-text-color_error slds-text-body_small slds-m-top_small"
               role="status"
@@ -1885,7 +1875,7 @@
           </div>
         </template>
 
-        <template if:false={hasSelectedElement}>
+        <template lwc:else>
           <div
             class="slds-text-align_center slds-p-around_medium slds-text-color_weak"
           >
@@ -1903,8 +1893,9 @@
     </div>
 
     <!-- Repository picker modal -->
-    <template if:true={showRepositoryModal}>
+    <template lwc:if={showRepositoryModal}>
       <section
+        lwc:ref="modalRootRepository"
         role="dialog"
         aria-modal="true"
         aria-labelledby="form-builder-repo-modal-title"
@@ -1951,13 +1942,13 @@
                 ></lightning-button>
               </div>
             </div>
-            <template if:true={repositorySearching}>
+            <template lwc:if={repositorySearching}>
               <lightning-spinner
                 alternative-text="Loading"
                 size="small"
               ></lightning-spinner>
             </template>
-            <template if:false={repositorySearching}>
+            <template lwc:else>
               <ul class="repo-result-list slds-m-top_small">
                 <template for:each={repositoryResults} for:item="row">
                   <li key={row.id} class="repo-result-item">
@@ -1976,7 +1967,7 @@
                   </li>
                 </template>
               </ul>
-              <template if:true={repositoryResultsEmpty}>
+              <template lwc:if={repositoryResultsEmpty}>
                 <p
                   class="slds-text-body_small slds-text-color_weak slds-m-top_small"
                 >
@@ -1997,8 +1988,9 @@
     </template>
 
     <!-- Publish to repository confirmation -->
-    <template if:true={showPromoteConfirm}>
+    <template lwc:if={showPromoteConfirm}>
       <section
+        lwc:ref="modalRootPromote"
         role="dialog"
         aria-modal="true"
         aria-labelledby="form-builder-promote-title"
@@ -2036,8 +2028,9 @@
     </template>
 
     <!-- Config Modal -->
-    <template if:true={showConfigModal}>
+    <template lwc:if={showConfigModal}>
       <section
+        lwc:ref="modalRootConfig"
         role="dialog"
         aria-modal="true"
         aria-labelledby="form-builder-config-modal-title"
@@ -2078,7 +2071,7 @@
               class="slds-m-bottom_small"
             >
             </lightning-combobox>
-            <template if:true={isPendingConversationalLayoutInvalid}>
+            <template lwc:if={isPendingConversationalLayoutInvalid}>
               <p
                 class="slds-text-color_error slds-text-body_small slds-m-bottom_small"
                 role="status"
@@ -2107,8 +2100,9 @@
     </template>
 
     <!-- Clone Form Modal -->
-    <template if:true={showCloneModal}>
+    <template lwc:if={showCloneModal}>
       <section
+        lwc:ref="modalRootClone"
         role="dialog"
         aria-modal="true"
         aria-labelledby="form-builder-clone-title"

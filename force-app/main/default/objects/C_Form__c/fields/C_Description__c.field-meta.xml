@@ -1,6 +1,8 @@
-<?xml version="1.0" encoding="UTF-8"?>
+<?xml version="1.0" encoding="UTF-8" ?>
 <CustomField xmlns="http://soap.sforce.com/2006/04/metadata">
     <fullName>C_Description__c</fullName>
+    <description
+  >Optional long-text summary of the form purpose or scope. Shown in form lists and documentation; not displayed to respondents unless surfaced in the renderer.</description>
     <label>Description</label>
     <length>32768</length>
     <trackHistory>false</trackHistory>

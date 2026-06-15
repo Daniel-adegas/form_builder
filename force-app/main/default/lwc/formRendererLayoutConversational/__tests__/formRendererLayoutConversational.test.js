@@ -78,6 +78,7 @@ describe("c-form-renderer-layout-conversational", () => {
     buttons[1].click();
 
     expect(nextListener).toHaveBeenCalledTimes(1);
+    expect(nextListener.mock.calls[0][0].detail).toEqual({ activeIndex: 0 });
     expect(finishListener).not.toHaveBeenCalled();
   });
 
@@ -120,6 +121,7 @@ describe("c-form-renderer-layout-conversational", () => {
     buttons[0].click();
 
     expect(prevListener).toHaveBeenCalledTimes(1);
+    expect(prevListener.mock.calls[0][0].detail).toEqual({ activeIndex: 0 });
   });
 
   it("keeps Previous disabled on first question when isFirstPage", () => {

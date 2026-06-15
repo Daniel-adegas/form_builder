@@ -68,7 +68,11 @@ const FEATURE_SETTINGS = {
   characterCountdown: false
 };
 
-function buildFormResult(layoutMode = "classic", pages = null) {
+function buildFormResult(
+  layoutMode = "classic",
+  pages = null,
+  dependencies = null
+) {
   return {
     formName: "Test Form",
     formId: "001XX000000001",
@@ -76,7 +80,8 @@ function buildFormResult(layoutMode = "classic", pages = null) {
     layoutMode,
     description: "A test form",
     pages: pages ?? [{ pageId: "page-1", pageName: "Page 1", sections: [] }],
-    categories: []
+    categories: [],
+    dependencies: dependencies ?? []
   };
 }
 
@@ -248,7 +253,7 @@ describe("c-form-renderer", () => {
       questionText: "Fill the table",
       isRequired: true,
       textValue: null,
-      tableColumns: [{ columnId: "col-1", columnName: "Col A" }]
+      tableColumns: "Col A"
     };
     const pages = [
       buildPage("page-1", [
@@ -277,6 +282,63 @@ describe("c-form-renderer", () => {
       })
       .then(() => {
         expect(submitFormApex).not.toHaveBeenCalled();
+      });
+  });
+
+  // ── Form-level dependencies ─────────────────────────────────────────────
+
+  it("applies form-level dependencies when page wrappers have empty dependency lists", () => {
+    const pages = [
+      buildPage("page-1", [
+        {
+          sectionId: "sec-1",
+          sectionName: "Section 1",
+          questions: [
+            {
+              questionId: "q-1",
+              questionName: "Q1",
+              questionText: "Trigger question",
+              questionType: "Picklist",
+              responses: [{ responseId: "resp-ctrl", responseText: "Yes" }]
+            }
+          ]
+        }
+      ]),
+      buildPage("page-2", [])
+    ];
+    getFormStructureWithMeta.mockResolvedValue(
+      buildFormResult("classic", pages, [
+        {
+          controllingResponse: "resp-ctrl",
+          targetPage: "page-2",
+          action: "Hide"
+        }
+      ])
+    );
+    const element = appendFormRenderer();
+
+    return flushPromises()
+      .then(() => {
+        expect(
+          element.shadowRoot.querySelectorAll(".steps-container [role=button]")
+            .length
+        ).toBe(2);
+        const layout = element.shadowRoot.querySelector(
+          "c-form-renderer-layout-classic"
+        );
+        layout.dispatchEvent(
+          new CustomEvent("valuechange", {
+            detail: { questionId: "q-1", value: "resp-ctrl" },
+            bubbles: true
+          })
+        );
+        return flushPromises();
+      })
+      .then(() => {
+        expect(
+          element.shadowRoot.querySelectorAll(".steps-container [role=button]")
+            .length
+        ).toBe(1);
       });
   });
 });

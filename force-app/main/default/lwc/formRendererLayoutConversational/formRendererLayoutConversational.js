@@ -204,6 +204,7 @@ export default class FormRendererLayoutConversational extends LightningElement {
       if (!this._effectiveIsLastPage) {
         this.dispatchEvent(
           new CustomEvent("nextpage", {
+            detail: { activeIndex: this.activeIndex },
             bubbles: true,
             composed: true
           })
@@ -241,6 +242,7 @@ export default class FormRendererLayoutConversational extends LightningElement {
     if (!this._effectiveIsFirstPage) {
       this.dispatchEvent(
         new CustomEvent("previouspage", {
+          detail: { activeIndex: this.activeIndex },
           bubbles: true,
           composed: true
         })

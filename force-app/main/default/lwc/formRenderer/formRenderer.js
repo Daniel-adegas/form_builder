@@ -63,6 +63,7 @@ export default class FormRenderer extends LightningElement {
   @track forms = [];
   @track formStructure = null;
   @track formMeta = null;
+  formDependencies = [];
   categoryPageMap = {};
   currentStep = 0;
   _selectedFormId = null;
@@ -365,6 +366,10 @@ export default class FormRenderer extends LightningElement {
 
   disconnectedCallback() {
     this._clearAutoSave();
+    if (this._notifyTimer) {
+      clearTimeout(this._notifyTimer);
+      this._notifyTimer = null;
+    }
   }
 
   async loadFeatureSettings() {
@@ -423,6 +428,9 @@ export default class FormRenderer extends LightningElement {
         description: result.description
       };
       this.formStructure = JSON.parse(JSON.stringify(result.pages));
+      this.formDependencies = JSON.parse(
+        JSON.stringify(result.dependencies || [])
+      );
       this.categoryPageMap = this._buildCategoryPageMap(result.categories);
       this.currentStep = 0;
       this.selectedResponses = {};
@@ -496,6 +504,9 @@ export default class FormRenderer extends LightningElement {
         description: result.description
       };
       this.formStructure = JSON.parse(JSON.stringify(result.pages));
+      this.formDependencies = JSON.parse(
+        JSON.stringify(result.dependencies || [])
+      );
       this.categoryPageMap = this._buildCategoryPageMap(result.categories);
       this.selectedFormName = result.formName;
 
@@ -747,6 +758,7 @@ export default class FormRenderer extends LightningElement {
     this._clearAutoSave();
     this.mode = "select";
     this.formStructure = null;
+    this.formDependencies = [];
     this.formMeta = null;
     this.currentStep = 0;
     this.translationMap = {};
@@ -858,20 +870,9 @@ export default class FormRenderer extends LightningElement {
     return map;
   }
 
-  evaluateDependencies() {
-    if (!this.formStructure) {
-      this.crossFieldErrors = {};
-      return;
-    }
-    const hidden = {};
-    const required = {};
-    const showTargets = {};
-    const showTriggered = {};
-
-    // Collect all dependencies and group by (targetId, action, logicGroup)
-    // Category dependencies expand to all page IDs within that category
+  _collectDependenciesFromPages() {
     const allDeps = [];
-    for (const page of this.formStructure) {
+    for (const page of this.formStructure || []) {
       if (!page.dependencies) continue;
       for (const dep of page.dependencies) {
         if (dep.targetCategory) {
@@ -887,6 +888,25 @@ export default class FormRenderer extends LightningElement {
         allDeps.push({ ...dep, targetId });
       }
     }
+    return allDeps;
+  }
+
+  evaluateDependencies() {
+    if (!this.formStructure) {
+      this.crossFieldErrors = {};
+      return;
+    }
+    const hidden = {};
+    const required = {};
+    const showTargets = {};
+    const showTriggered = {};
+
+    // Form-wide rules from FormStructure_Wrapper.dependencies; fall back to
+    // per-page lists for legacy payloads (deps on pages[0] only).
+    const allDeps =
+      this.formDependencies?.length > 0
+        ? this._expandDependencyTargets(this.formDependencies)
+        : this._collectDependenciesFromPages();
 
     // Partition: deps with a logicGroup vs ungrouped (backward-compatible)
     const grouped = {}; // key: targetId__action__logicGroup -> { operator, deps[] }
@@ -973,6 +993,24 @@ export default class FormRenderer extends LightningElement {
     }
 
     this._evaluateCrossFieldRules();
+  }
+
+  _expandDependencyTargets(deps) {
+    const allDeps = [];
+    for (const dep of deps) {
+      if (dep.targetCategory) {
+        const pageIds = this.categoryPageMap[dep.targetCategory] || [];
+        for (const pid of pageIds) {
+          allDeps.push({ ...dep, targetId: pid });
+        }
+        continue;
+      }
+      const targetId =
+        dep.targetPage || dep.targetSection || dep.targetQuestion;
+      if (!targetId) continue;
+      allDeps.push({ ...dep, targetId });
+    }
+    return allDeps;
   }
 
   _evaluateCrossFieldRules() {

@@ -1,8 +1,11 @@
-<?xml version="1.0" encoding="UTF-8"?>
+<?xml version="1.0" encoding="UTF-8" ?>
 <CustomField xmlns="http://soap.sforce.com/2006/04/metadata">
     <fullName>C_Enable_Character_Countdown__c</fullName>
+    <description
+  >When checked, Text and Long Text questions with Max Length show a live character count (e.g. 12 / 100) in the renderer while typing. When unchecked or no hierarchy row applies, the counter stays off. Defaults to false.</description>
     <defaultValue>false</defaultValue>
-    <inlineHelpText>When checked, Text and Long Text questions with Max Length show a live count (e.g. 12 / 100) while typing; the limit is still enforced the same way. If unchecked or no hierarchy row applies to this user, the counter stays off (default).</inlineHelpText>
+    <inlineHelpText
+  >When checked, Text and Long Text questions with Max Length show a live count (e.g. 12 / 100) while typing; the limit is still enforced the same way. If unchecked or no hierarchy row applies to this user, the counter stays off (default).</inlineHelpText>
     <label>Enable Character Countdown</label>
     <trackTrending>false</trackTrending>
     <type>Checkbox</type>
