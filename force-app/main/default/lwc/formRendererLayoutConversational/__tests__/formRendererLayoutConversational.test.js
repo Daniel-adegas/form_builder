@@ -32,6 +32,9 @@ function appendConversationalLayout(props = {}) {
   return element;
 }
 
+// eslint-disable-next-line @lwc/lwc/no-async-operation
+const flushPromises = () => new Promise((resolve) => setTimeout(resolve, 0));
+
 describe("c-form-renderer-layout-conversational", () => {
   afterEach(() => {
     while (document.body.firstChild) {
@@ -192,5 +195,93 @@ describe("c-form-renderer-layout-conversational", () => {
     const element = appendConversationalLayout({ previewMode: true });
     const buttons = element.shadowRoot.querySelectorAll("lightning-button");
     expect(buttons[1].disabled).toBe(true);
+  });
+
+  it("resets activeIndex when currentPage.pageId changes", async () => {
+    const sections = [
+      {
+        sectionId: "sec-1",
+        visibleQuestions: [
+          {
+            questionId: "q-1",
+            questionType: "Text",
+            isRequired: false,
+            value: "",
+            textValue: ""
+          },
+          {
+            questionId: "q-2",
+            questionType: "Text",
+            isRequired: false,
+            value: "",
+            textValue: ""
+          }
+        ]
+      }
+    ];
+    const element = appendConversationalLayout({ currentSections: sections });
+    const formQuestion = element.shadowRoot.querySelector("c-form-question");
+    formQuestion.reportInputValidity = jest.fn().mockReturnValue(true);
+
+    element.shadowRoot.querySelectorAll("lightning-button")[1].click();
+    await flushPromises();
+    expect(
+      element.shadowRoot.querySelector(".counter").textContent.trim()
+    ).toBe("2 of 2");
+
+    element.currentPage = { pageId: "page-2" };
+    element.currentPageName = "Page 2";
+    await flushPromises();
+
+    expect(
+      element.shadowRoot.querySelector(".counter").textContent.trim()
+    ).toBe("1 of 2");
+  });
+
+  it("clamps activeIndex when visible question count shrinks", async () => {
+    const twoQuestions = [
+      {
+        sectionId: "sec-1",
+        visibleQuestions: [
+          {
+            questionId: "q-1",
+            questionType: "Text",
+            isRequired: false,
+            value: "",
+            textValue: ""
+          },
+          {
+            questionId: "q-2",
+            questionType: "Text",
+            isRequired: false,
+            value: "",
+            textValue: ""
+          }
+        ]
+      }
+    ];
+    const element = appendConversationalLayout({
+      currentSections: twoQuestions
+    });
+    const formQuestion = element.shadowRoot.querySelector("c-form-question");
+    formQuestion.reportInputValidity = jest.fn().mockReturnValue(true);
+
+    element.shadowRoot.querySelectorAll("lightning-button")[1].click();
+    await flushPromises();
+    expect(
+      element.shadowRoot.querySelector(".counter").textContent.trim()
+    ).toBe("2 of 2");
+
+    element.currentSections = [
+      {
+        sectionId: "sec-1",
+        visibleQuestions: twoQuestions[0].visibleQuestions.slice(0, 1)
+      }
+    ];
+    await flushPromises();
+
+    expect(
+      element.shadowRoot.querySelector(".counter").textContent.trim()
+    ).toBe("1 of 1");
   });
 });

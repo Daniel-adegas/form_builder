@@ -28,15 +28,23 @@ export default class FormRendererLayoutConversational extends LightningElement {
 
   renderedCallback() {
     const pageId = this.currentPage?.pageId;
+    const totalQuestions = this.totalQuestions;
+    const needsPageReset = pageId && pageId !== this.lastPageId;
+    const needsIndexClamp =
+      this.activeIndex >= totalQuestions && totalQuestions > 0;
 
-    if (pageId && pageId !== this.lastPageId) {
+    if (!needsPageReset && !needsIndexClamp) {
+      return;
+    }
+
+    if (needsPageReset) {
       this.lastPageId = pageId;
       this.activeIndex = 0;
       this.inlineValidationMessage = "";
     }
 
-    if (this.activeIndex >= this.totalQuestions && this.totalQuestions > 0) {
-      this.activeIndex = this.totalQuestions - 1;
+    if (this.activeIndex >= totalQuestions && totalQuestions > 0) {
+      this.activeIndex = totalQuestions - 1;
     }
   }
 

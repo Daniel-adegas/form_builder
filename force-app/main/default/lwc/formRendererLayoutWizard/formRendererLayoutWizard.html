@@ -40,11 +40,11 @@
               >
                 <span class="question-dot"></span>
                 <span class="question-nav-text">{question.questionText}</span>
-                <template if:true={question.isDisabled}>
+                <template lwc:if={question.isDisabled}>
                   <span class="disabled-sidebar-text">(Disabled)</span>
                 </template>
 
-                <template if:true={question.isAnswered}>
+                <template lwc:if={question.isAnswered}>
                   <span class="answered-check" aria-hidden="true">✓</span>
                   <span class="slds-assistive-text">Answered</span>
                 </template>
@@ -57,7 +57,7 @@
 
     <main class="wizard-content">
       <div class="page-title-area">
-        <template if:true={currentPageDescription}>
+        <template lwc:if={currentPageDescription}>
           <p class="page-description">{currentPageDescription}</p>
         </template>
       </div>
@@ -67,30 +67,31 @@
           <div class="section-card-header">
             <h3 class="section-name">{section.translatedName}</h3>
 
-            <template if:true={section.bonus}>
+            <template lwc:if={section.bonus}>
               <span class="bonus-badge">Bonus</span>
             </template>
           </div>
 
           <div class="section-card-body slds-grid slds-wrap slds-gutters_small">
-            <template for:each={section.visibleQuestions} for:item="quest">
-              <div
-                class={quest.questionLayoutClass}
-                key={quest.questionId}
-                data-body-question-id={quest.questionId}
-                onfocusin={handleQuestionFocus}
-              >
-                <c-form-question
-                  question={quest}
-                  section-id={section.sectionId}
-                  read-only={readOnly}
-                  feature-settings={featureSettings}
-                  onvaluechange={handleValueChange}
-                ></c-form-question>
-              </div>
+            <template lwc:if={section.visibleQuestions.length}>
+              <template for:each={section.visibleQuestions} for:item="quest">
+                <div
+                  class={quest.questionLayoutClass}
+                  key={quest.questionId}
+                  data-body-question-id={quest.questionId}
+                  onfocusin={handleQuestionFocus}
+                >
+                  <c-form-question
+                    question={quest}
+                    section-id={section.sectionId}
+                    read-only={readOnly}
+                    feature-settings={featureSettings}
+                    onvaluechange={handleValueChange}
+                  ></c-form-question>
+                </div>
+              </template>
             </template>
-
-            <template if:false={section.visibleQuestions.length}>
+            <template lwc:else>
               <p class="empty-section-msg slds-col slds-size_1-of-1">
                 No questions in this section.
               </p>

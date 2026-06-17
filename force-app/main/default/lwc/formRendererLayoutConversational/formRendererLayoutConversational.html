@@ -1,13 +1,13 @@
 <template>
   <section class="conversation-shell">
-    <template if:true={hasConversationHeader}>
+    <template lwc:if={hasConversationHeader}>
       <div class="conversation-header">
         <div>
-          <template if:true={currentPageName}>
+          <template lwc:if={currentPageName}>
             <p class="eyebrow">Page</p>
             <h2>{currentPageName}</h2>
           </template>
-          <template if:true={currentPageDescription}>
+          <template lwc:if={currentPageDescription}>
             <p class="description">{currentPageDescription}</p>
           </template>
         </div>
@@ -31,7 +31,7 @@
       >
     </div>
 
-    <template if:true={hasQuestions}>
+    <template lwc:if={hasQuestions}>
       <article class="question-stage">
         <div class="question-meta">
           <span class="question-number">{activeNumber}</span>
@@ -46,7 +46,7 @@
           onvaluechange={handleValueChange}
         ></c-form-question>
 
-        <template if:true={hasInlineValidationError}>
+        <template lwc:if={hasInlineValidationError}>
           <div
             class="inline-validation-error"
             role="alert"
@@ -74,7 +74,7 @@
       </article>
     </template>
 
-    <template if:false={hasQuestions}>
+    <template lwc:else>
       <div class="empty-state">No questions available on this page.</div>
     </template>
   </section>
