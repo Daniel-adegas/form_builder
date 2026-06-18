@@ -55,7 +55,13 @@ Prioritize **stability**, **maintainability**, and **regression prevention** ove
 | LWC handler binding         | Child templates calling parent logic use events or documented patterns; flag `@api` function props used as DOM handlers when parent state is required.                                                             |
 | Multi-mode UI               | Rendering guards account for **all** layout/mode variants (duplicate nav/progress chrome).                                                                                                                         |
 | Accessibility               | New dialogs, progress UX, and live regions meet baseline ARIA; validation is not toast-only on Experience Cloud without verification.                                                                              |
-| Performance (LWC)           | Flag hot getters (e.g. repeated parse/stringify) and uncleared timers on unmount.                                                                                                                                  |
+| Performance (LWC)           | Flag hot getters (e.g. repeated parse/stringify), uncleared timers on unmount, and unguarded `renderedCallback` work on every re-render.                                                                           |
+| LWC template directives     | Flag deprecated `if:true` / `if:false`; require `lwc:if` / `lwc:else` (LWS-safe). Migrate whole touched templates, especially sibling `formRendererLayout*` bundles.                                               |
+| LWC DOM access              | Prefer `lwc:ref` over `template.querySelector` for stable nodes; flag silent-break selectors in large bundles (`formBuilderVisual`).                                                                               |
+| SLDS / styling              | Flag hard-coded hex/rgba and inline `style` colors; prefer design tokens in bundle CSS.                                                                                                                            |
+| Metadata hygiene            | New/changed custom fields need `<description>`; toggles on `Form_Builder_Settings__c` document gated UI. Layout Mode on `C_Form__c` is form config — not a settings toggle (see project rule).                     |
+| Query selectivity (Apex)    | Flag wide multi-field `OR` queries, non-indexed hot filters, and undocumented single-slice attachment (e.g. deps on page 1 only).                                                                                  |
+| Form Builder security model | Do not block metadata-read SOQL solely for missing `WITH USER_MODE` when Permission Sets + sanctioned readers apply; still flag user-data paths and new `without sharing`.                                         |
 
 ## Feedback severity
 

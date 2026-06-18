@@ -24,14 +24,15 @@ Always run these steps on PR reviews in order to learn.
 5. Ignore noise, personal preferences, outdated comments, and one-off opinions.
 6. Group feedback by theme:
    - regression risk
-   - LWC architecture
-   - Apex usage
+   - LWC architecture (template directives, lifecycle, DOM access)
+   - Apex usage (selectivity, data-shape contracts)
    - LDS/UI API usage
-   - Salesforce security
-   - Jest tests
-   - Apex tests
-   - metadata
-   - permissions
+   - Salesforce security (including project-specific models)
+   - Jest tests (`@api`, event `detail` payloads)
+   - Apex tests (negative paths, `System.runAs`)
+   - metadata (field descriptions, picklist API values)
+   - permissions / feature toggles
+   - styling (SLDS tokens vs hard-coded colors)
    - performance
 
 7. Detect repeated patterns across PRs.

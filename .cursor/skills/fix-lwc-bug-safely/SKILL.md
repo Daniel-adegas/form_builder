@@ -35,6 +35,7 @@ Apply the workflow in order using repository search (semantic and exact) until e
 - For steps 3–5: Map parents that import or embed the LWC, composed children, `c-*` usage, `CustomEvent` publishers and subscribers, `@AuraEnabled` and `@wire` usage, other callers of the same Apex APIs, and shared JS modules, labels, or tokens on the change path.
 - For steps 6–7: Touch only what the fix requires; preserve `@api` names and semantics, event `type` strings, and event detail shapes unless the user explicitly approves a breaking change (if breaking, enumerate consumers to update).
 - For step 8: Prefer a Jest case that fails before the fix and passes after; update mocks for wires, Apex, or events.
+- When fixing lifecycle or navigation bugs: verify all `setTimeout` / `setInterval` IDs are cleared in `disconnectedCallback`; check `renderedCallback` for missing early-exit guards.
 - For step 9: List screens, integrations, and manual org checks worth smoking after deploy.
 
 ## Output

@@ -67,6 +67,8 @@ For each accepted pattern, specify:
 
 Prefer **small targeted improvements** over large rewrites.
 
+When mapping to repo config, prefer **`.cursor/rules/*.mdc`** for file-scoped guardrails and update **skills/agents** only for workflow or review-priority changes — avoid duplicating the same text in three places.
+
 ## Approval and application
 
 **Never auto-apply learnings without review.**

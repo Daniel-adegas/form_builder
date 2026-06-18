@@ -1,0 +1,12 @@
+---
+description: LWC template directives — use lwc:if, not deprecated if:true/if:false
+globs: "**/lwc/**/*.html"
+alwaysApply: false
+---
+
+# LWC template directives
+
+- Do **not** add or leave `if:true`, `if:false`, `if:elseif`, or `if:else` in templates. They are deprecated (API v57+) and break under Lightning Web Security.
+- Use `lwc:if`, `lwc:elseif`, `lwc:else`, and `lwc:unless` instead.
+- When touching a template that still uses legacy directives, migrate the whole file (or at least the edited section) rather than mixing both styles.
+- Align sibling layout components (`formRendererLayout*`) on the same directive style as the parent renderer.

@@ -143,7 +143,8 @@ export default class FormBuilderVisual extends LightningElement {
     fieldMapping: true,
     translations: true,
     assetRepository: false,
-    characterCountdown: false
+    characterCountdown: false,
+    layoutModes: false
   };
   @track showCloneModal = false;
   @track showConfigModal = false;
@@ -205,7 +206,11 @@ export default class FormBuilderVisual extends LightningElement {
   }
 
   get showConfigInToolbar() {
-    return !this.repositoryMode;
+    return !this.repositoryMode && this.showLayoutModes;
+  }
+
+  get showLayoutModes() {
+    return this.featureSettings.layoutModes === true;
   }
 
   /** Persisted layout on the form record (not config-modal draft state). */

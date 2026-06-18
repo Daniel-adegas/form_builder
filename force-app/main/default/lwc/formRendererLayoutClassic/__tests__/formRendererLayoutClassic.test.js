@@ -19,7 +19,8 @@ function buildSampleSections(options = {}) {
               questionLayoutClass: "slds-col slds-size_1-of-1 question-row"
             }
           ]
-        : []
+        : [],
+      hasVisibleQuestions: withQuestions
     }
   ];
 }

@@ -35,16 +35,33 @@ Obey all configured project rules (for example `.cursor/rules`), user rules, and
 ## Review priorities
 
 1. Regression risk
-2. Cross-layout contract consistency (`@api` names, event patterns across sibling `c-*` layouts)
-3. Picklist API value correctness (metadata vs code vs tests)
-4. Baseline accessibility for new interactive UI (modals, progress, live regions)
-5. Experience Cloud / LWR behavioral differences (e.g. toast-only validation)
-6. Salesforce security
-7. Broken dependencies
-8. Test coverage
-9. Maintainability
-10. Performance
-11. Code style
+2. Cross-layout contract consistency (`@api` names, event `detail` payloads across sibling `c-*` layouts)
+3. Deprecated LWC templates (`if:true` / `if:false` → `lwc:if` / `lwc:else`; LWS breakage)
+4. Picklist API value correctness (metadata vs code vs tests)
+5. LWC lifecycle safety (timer cleanup in `disconnectedCallback`, guarded `renderedCallback`)
+6. Baseline accessibility for new interactive UI (modals, progress, live regions)
+7. Experience Cloud / LWR behavioral differences (e.g. toast-only validation)
+8. Form Builder security model (Permission Sets + sanctioned readers — do not mis-flag metadata reads)
+9. Apex query selectivity and indexed hot-path filters
+10. Salesforce security on user-data paths
+11. Broken dependencies
+12. Test coverage (Jest for `@api` / events; Apex negative + `System.runAs` sharing tests)
+13. Maintainability (SLDS tokens vs hard-coded colors; `lwc:ref` vs `querySelector`)
+14. Performance
+15. Code style
+
+## Project rules (read when relevant)
+
+Subagents start without parent chat history. When reviewing matching paths, read applicable rules under `.cursor/rules/`:
+
+| Topic                       | Rule file                                  |
+| --------------------------- | ------------------------------------------ |
+| LWC template directives     | `.cursor/rules/lwc-templates.mdc`          |
+| DOM, timers, lifecycle      | `.cursor/rules/lwc-dom-lifecycle.mdc`      |
+| SLDS / CSS                  | `.cursor/rules/lwc-styling-slds.mdc`       |
+| Field metadata & toggles    | `.cursor/rules/metadata-hygiene.mdc`       |
+| SOQL selectivity            | `.cursor/rules/apex-query-selectivity.mdc` |
+| Form Builder security model | `.cursor/rules/form-builder-security.mdc`  |
 
 ## Project skills (read and follow when relevant)
 

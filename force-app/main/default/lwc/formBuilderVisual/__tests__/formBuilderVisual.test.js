@@ -151,7 +151,8 @@ const FEATURE_SETTINGS = {
   translations: false,
   repository: false,
   options: false,
-  styling: false
+  styling: false,
+  layoutModes: false
 };
 
 function appendFormBuilderVisual(props = {}) {

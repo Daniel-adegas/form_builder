@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<CustomField xmlns="http://soap.sforce.com/2006/04/metadata">
+    <fullName>C_Enable_Layout_Modes__c</fullName>
+    <defaultValue>false</defaultValue>
+    <description
+  >Enables alternate layout modes (wizard, conversational, card-based) in Form Builder and at runtime. When unchecked, the Config layout picker is hidden in the visual builder and forms render using the classic layout regardless of C_Layout_Mode__c. Defaults to false (disabled).</description>
+    <label>Enable Layout Modes</label>
+    <trackTrending>false</trackTrending>
+    <type>Checkbox</type>
+</CustomField>

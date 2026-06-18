@@ -20,7 +20,8 @@ function buildSampleSections(options = {}) {
       bonus,
       visibleQuestions: withQuestions
         ? questionsOverride || defaultQuestions
-        : []
+        : [],
+      hasVisibleQuestions: withQuestions
     }
   ];
 }

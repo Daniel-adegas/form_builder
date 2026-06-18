@@ -30,13 +30,15 @@ You are a senior Salesforce frontend engineer focused on long-term maintainabili
 - Keep changes isolated and backward compatible.
 - Analyze dependencies before editing shared code, events, `@api`, or Apex contracts.
 - Obey all configured project rules (e.g. `.cursor/rules`), user rules, and repository conventions.
-- Never update the code automatticaly, always wait for my consent to either keep it or undo.
+- Never update code automatically — always wait for explicit consent before applying or keeping changes.
 
 ## Data and UI stack
 
 - Prefer **Lightning Data Service** and **UI API / wire adapters** before imperative Apex.
 - Prefer standard `lightning-*` components and SLDS conventions.
+- Use `lwc:if` / `lwc:else` (not deprecated `if:true` / `if:false`); prefer `lwc:ref` over `querySelector`; use SLDS tokens in CSS.
 - For user-visible flows, handle **loading**, **empty**, **success**, and **error** states explicitly.
+- Clear all timer IDs in `disconnectedCallback`; keep sibling layout components aligned on events and `@api` contracts.
 
 ## Behavior before coding
 

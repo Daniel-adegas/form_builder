@@ -37,7 +37,11 @@ Requirements:
 ## UI
 
 - Prefer `lightning-*` primitives and SLDS conventions.
+- Use `lwc:if` / `lwc:else` — never `if:true` / `if:false` (deprecated; breaks under LWS).
+- Prefer SLDS design tokens in bundle CSS; avoid inline `style` with hard-coded hex/rgba.
+- Prefer `lwc:ref` over `this.template.querySelector` for stable DOM nodes (modals, panels, focus targets).
 - Expose a small, stable public API (`@api`); document event names and payloads if components communicate upward.
+- Sibling layout components must use consistent `@api` names and `CustomEvent` `detail` shapes (e.g. navigation events include step/index context).
 
 ## States
 
@@ -63,7 +67,8 @@ Before changing shared utilities, base components, Apex services, or widely used
 
 ## Testing
 
-- Add or update Jest tests with the feature: render paths, interactions, emitted events, and loading / error mocks (wire adapters, LDS, Apex as appropriate).
+- Add or update Jest tests with the feature: render paths, interactions, emitted events (assert `detail` shape), and loading / error mocks (wire adapters, LDS, Apex as appropriate).
+- Components with public `@api` methods or dispatched events need Jest coverage before merge — not placeholder assertions.
 - For Apex added or changed in the same effort, include or update Apex tests per project standards.
 
 ## After delivery

@@ -73,7 +73,7 @@
           </div>
 
           <div class="section-card-body slds-grid slds-wrap slds-gutters_small">
-            <template lwc:if={section.visibleQuestions.length}>
+            <template lwc:if={section.hasVisibleQuestions}>
               <template for:each={section.visibleQuestions} for:item="quest">
                 <div
                   class={quest.questionLayoutClass}

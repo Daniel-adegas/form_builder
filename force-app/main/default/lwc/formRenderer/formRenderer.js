@@ -84,7 +84,8 @@ export default class FormRenderer extends LightningElement {
     scoring: true,
     fieldMapping: true,
     translations: true,
-    characterCountdown: false
+    characterCountdown: false,
+    layoutModes: false
   };
   @track inlineMessage = {
     title: "",
@@ -228,11 +229,8 @@ export default class FormRenderer extends LightningElement {
     if (!page || !page.sections) return [];
     return page.sections
       .filter((s) => !this.hiddenElements[s.sectionId])
-      .map((s) => ({
-        ...s,
-        translatedName:
-          this.getTranslated("Section", s.sectionId, "Name") || s.sectionName,
-        visibleQuestions: (s.questions || [])
+      .map((s) => {
+        const visibleQuestions = (s.questions || [])
           .filter((q) => !this.hiddenElements[q.questionId])
           .map((q) => {
             const colBase =
@@ -281,8 +279,16 @@ export default class FormRenderer extends LightningElement {
                 responseName: r.responseName
               }))
             };
-          })
-      }));
+          });
+
+        return {
+          ...s,
+          translatedName:
+            this.getTranslated("Section", s.sectionId, "Name") || s.sectionName,
+          visibleQuestions,
+          hasVisibleQuestions: visibleQuestions.length > 0
+        };
+      });
   }
 
   get isFirstPage() {
@@ -332,6 +338,9 @@ export default class FormRenderer extends LightningElement {
   }
 
   get rendererLayout() {
+    if (!this.featureSettings.layoutModes) {
+      return "classic";
+    }
     return this.formMeta?.layoutMode || "classic";
   }
   get isClassic() {

@@ -65,7 +65,8 @@ const FEATURE_SETTINGS = {
   scoring: true,
   fieldMapping: true,
   translations: false,
-  characterCountdown: false
+  characterCountdown: false,
+  layoutModes: true
 };
 
 function buildFormResult(
@@ -162,6 +163,24 @@ describe("c-form-renderer", () => {
       expect(
         element.shadowRoot.querySelector("c-form-renderer-layout-card-based")
       ).not.toBeNull();
+    });
+  });
+
+  it("falls back to classic layout when layoutModes feature is disabled", () => {
+    getFeatureSettings.mockResolvedValue({
+      ...FEATURE_SETTINGS,
+      layoutModes: false
+    });
+    getFormStructureWithMeta.mockResolvedValue(buildFormResult("wizard"));
+    const element = appendFormRenderer();
+
+    return flushPromises().then(() => {
+      expect(
+        element.shadowRoot.querySelector("c-form-renderer-layout-classic")
+      ).not.toBeNull();
+      expect(
+        element.shadowRoot.querySelector("c-form-renderer-layout-wizard")
+      ).toBeNull();
     });
   });
 

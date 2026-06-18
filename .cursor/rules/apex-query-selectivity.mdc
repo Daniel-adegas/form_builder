@@ -1,0 +1,12 @@
+---
+description: Selective SOQL and indexed filters in Apex
+globs: "**/*.cls"
+alwaysApply: false
+---
+
+# Query selectivity and data shape
+
+- Avoid wide multi-branch `OR` filters across unrelated lookup fields when a typed discriminator exists (e.g. split dependency queries by `C_Target_Type__c` instead of one 5-way `OR`).
+- Prefer direct parent keys on child objects (e.g. `C_Form__c` on dependencies) when filtering by form scope.
+- Filters on non-indexed picklist/text fields at volume (e.g. `C_Status__c = 'Published'`) may full-scan — prefer indexed booleans or documented custom indexes for hot paths.
+- When server-side data is attached only to one wrapper slice (e.g. dependencies on page 1 only), document the contract and add an Apex or integration test so multi-page behavior does not silently regress.
