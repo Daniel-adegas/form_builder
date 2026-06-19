@@ -1,6 +1,8 @@
-<?xml version="1.0" encoding="UTF-8"?>
+<?xml version="1.0" encoding="UTF-8" ?>
 <CustomField xmlns="http://soap.sforce.com/2006/04/metadata">
     <fullName>C_Enable_Translations__c</fullName>
+    <description
+  >Enables the Translations property panel in Form Builder for Pages, Sections, Questions, and Responses. When unchecked, translation authoring is hidden; the renderer uses default-language text only. Defaults to true.</description>
     <defaultValue>true</defaultValue>
     <externalId>false</externalId>
     <label>Enable Translations</label>

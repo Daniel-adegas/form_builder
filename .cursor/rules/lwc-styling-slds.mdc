@@ -1,0 +1,11 @@
+---
+description: SLDS design tokens and CSS hygiene for LWC
+globs: "**/lwc/**/*.{html,css}"
+alwaysApply: false
+---
+
+# Styling and SLDS
+
+- Prefer SLDS design tokens (e.g. `var(--slds-g-color-brand-base-50)`) over hard-coded hex/rgba in bundle CSS.
+- Avoid inline `style` attributes with hard-coded colors — they override org branding and SLDS tokens.
+- Keep brand/theming in the component `.css` file, not in template inline styles.

@@ -1,6 +1,8 @@
-<?xml version="1.0" encoding="UTF-8"?>
+<?xml version="1.0" encoding="UTF-8" ?>
 <CustomField xmlns="http://soap.sforce.com/2006/04/metadata">
     <fullName>C_Status__c</fullName>
+    <description
+  >Form lifecycle status. Draft — editable in Form Builder; Testing — internal preview; Published — available to FormService and the renderer; Archived — hidden from selection but retained for history.</description>
     <externalId>false</externalId>
     <label>Status</label>
     <required>false</required>

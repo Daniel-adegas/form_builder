@@ -1,0 +1,22 @@
+---
+description: LWC DOM access, timers, and lifecycle guards
+globs: "**/lwc/**/*.js"
+alwaysApply: false
+---
+
+# DOM access and lifecycle
+
+## Prefer `lwc:ref` over `querySelector`
+
+- For stable template nodes (modals, panels, focus targets), prefer `lwc:ref` (API v59+) over `this.template.querySelector(...)`.
+- `querySelector` breaks silently when class names or structure drift; refs are compiler-validated.
+
+## Timer cleanup
+
+- Clear **every** `setTimeout` / `setInterval` ID in `disconnectedCallback` when the callback touches component state.
+- Do not assume only one timer exists (e.g. `_autoSaveTimer` and `_notifyTimer` both need cleanup).
+
+## `renderedCallback` guards
+
+- Avoid expensive work on every re-render (e.g. page-index lookup on each keystroke).
+- Early-return when inputs relevant to the block (`pageId`, `activeIndex`, wired data identity) have not changed.

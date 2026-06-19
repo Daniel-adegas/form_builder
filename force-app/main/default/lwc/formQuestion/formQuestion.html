@@ -1,190 +1,232 @@
 <template>
-    <div class="question-container">
-        <div class="slds-form-element">
-            <label class="slds-form-element__label">
-                <template if:true={isRequired}>
-                    <abbr class="slds-required" title="required">*</abbr>
-                </template>
-                {questionLabel}
-            </label>
-            
-            <template if:true={helpText}>
-                <p class="slds-text-body_small slds-text-color_weak slds-m-bottom_x-small">{helpText}</p>
-            </template>
-            
-            <div class="slds-form-element__control">
-                <!-- Short Text: input vs lightning-input, character row is optional -->
-                <template if:true={isShortText}>
-                    <template if:true={showCharCountdownShortText}>
-                        <input
-                            type="text"
-                            class="slds-input char-countdown-short-native"
-                            value={charCountdownShortDisplayValue}
-                            placeholder={placeholder}
-                            maxlength={charCountdownTextareaMaxlength}
-                            required={isRequired}
-                            disabled={isDisabled}
-                            aria-label={questionLabel}
-                            oninput={handleCharCountdownShortInput}
-                            onblur={handleCharCountdownShortBlur}
-                        />
-                    </template>
-                    <template if:false={showCharCountdownShortText}>
-                        <lightning-input
-                            type="text"
-                            value={question.textValue}
-                            placeholder={placeholder}
-                            max-length={maxLength}
-                            pattern={validationPattern}
-                            message-when-pattern-mismatch={validationMessage}
-                            message-when-value-missing={requiredValueMissingMessage}
-                            onchange={handleTextChange}
-                            required={isRequired}
-                            disabled={isDisabled}>
-                        </lightning-input>
-                    </template>
-                    <template if:true={showCharCountdownShortText}>
-                        <div class="char-countdown-row char-countdown-row--muted slds-text-body_small">
-                            <span class="char-countdown-num">{charCountdownShortCurrentLength}</span><span class="char-countdown-static"> / {charCountdownMaxDisplay} characters</span>
-                        </div>
-                    </template>
-                </template>
+  <div class="question-container">
+    <div class="slds-form-element">
+      <label class="slds-form-element__label">
+        <template lwc:if={isRequired}>
+          <abbr class="slds-required" title="required">*</abbr>
+        </template>
+        {questionLabel}
+      </label>
 
-                <!-- Long Text: native editor when counters need live updates; footers gated separately -->
-                <template if:true={isLongText}>
-                    <template if:true={useNativeLongTextEditor}>
-                        <div class="long-text-native-shell">
-                            <textarea
-                                class="slds-textarea long-text-native"
-                                value={longTextDisplayValue}
-                                placeholder={placeholder}
-                                maxlength={nativeTextareaMaxlength}
-                                disabled={isDisabled}
-                                oninput={handleLongTextNativeInput}
-                                onblur={handleLongTextNativeBlur}
-                            ></textarea>
-                            <div class="long-text-native-footers">
-                                <template if:true={showWordCounter}>
-                                    <div class={wordCounterRowClass}>
-                                        <span class={wordCounterNumClass}>{currentWordCount}</span><span class="word-counter-static"> / {maxWordCountDisplay} words</span>
-                                    </div>
-                                </template>
-                                <template if:true={showLongTextCharCountdownFooter}>
-                                    <div class="char-countdown-row char-countdown-row--muted slds-text-body_small">
-                                        <span class="char-countdown-num">{charCountdownLongCurrentLength}</span><span class="char-countdown-static"> / {charCountdownMaxDisplay} characters</span>
-                                    </div>
-                                </template>
-                            </div>
-                        </div>
-                    </template>
-                    <template if:false={useNativeLongTextEditor}>
-                        <lightning-textarea
-                            value={question.textValue}
-                            placeholder={placeholder}
-                            max-length={maxLength}
-                            onchange={handleLongTextChange}
-                            onblur={handleLongTextBlur}
-                            disabled={isDisabled}
-                        ></lightning-textarea>
-                    </template>
-                </template>
+      <template lwc:if={helpText}>
+        <p
+          class="slds-text-body_small slds-text-color_weak slds-m-bottom_x-small"
+        >
+          {helpText}
+        </p>
+      </template>
 
-                <template if:true={wordLimitErrorMessage}>
-                    <div class="slds-form-element__help slds-text-color_error slds-m-top_xx-small" role="alert">{wordLimitErrorMessage}</div>
-                </template>
-
-                <template if:true={longTextRequiredInlineMessage}>
-                    <div class="slds-form-element__help slds-text-color_error slds-m-top_xx-small" role="alert">{longTextRequiredInlineMessage}</div>
-                </template>
-                
-                <!-- Number -->
-                <template if:true={isNumberQuestion}>
-                    <lightning-input
-                        type="number"
-                        value={question.textValue}
-                        placeholder={placeholder}
-                        min={minValue}
-                        max={maxValue}
-                        step={numberStep}
-                        onchange={handleNumberChange}
-                        required={isRequired}
-                        disabled={isDisabled}>
-                    </lightning-input>
-                </template>
-
-                <!-- Date -->
-                <template if:true={isDateQuestion}>
-                    <lightning-input
-                        type="date"
-                        value={question.textValue}
-                        onchange={handleDateChange}
-                        required={isRequired}
-                        disabled={isDisabled}>
-                    </lightning-input>
-                </template>
-
-                <!-- Picklist (Single Select) -->
-                <template if:true={isPicklist}>
-                    <lightning-radio-group
-                        name={question.questionId}
-                        value={question.value}
-                        options={responseOptions}
-                        onchange={handlePicklistChange}
-                        required={isRequired}
-                        disabled={isDisabled}>
-                    </lightning-radio-group>
-                </template>
-
-                <!-- Multi-Select -->
-                <template if:true={isMultiSelect}>
-                    <lightning-checkbox-group
-                        name={question.questionId}
-                        value={multiSelectValue}
-                        options={responseOptions}
-                        onchange={handleMultiSelectChange}
-                        required={isRequired}
-                        disabled={isDisabled}>
-                    </lightning-checkbox-group>
-                </template>
-
-                <!-- Checkbox -->
-                <template if:true={isCheckboxQuestion}>
-                    <lightning-checkbox-group
-                        name={question.questionId}
-                        value={checkboxValue}
-                        options={checkboxOptions}
-                        onchange={handleCheckboxChange}
-                        required={isRequired}
-                        disabled={isDisabled}>
-                    </lightning-checkbox-group>
-                </template>
-                
-                <!-- File Upload -->
-                <template if:true={isFileQuestion}>
-                    <lightning-input
-                        type="file"
-                        label="Upload File"
-                        accept={question.acceptedFileTypes}
-                        disabled={isDisabled}
-                        onchange={handleFileChange}>
-                    </lightning-input>
-                </template>
-                
-                <!-- Table Input -->
-                <template if:true={isTableQuestion}>
-                    <c-form-question-table
-                        label=""
-                        column-config={question.tableColumns}
-                        initial-data={question.textValue}
-                        disabled={isDisabled}
-                        ontablechange={handleTableChange}>
-                    </c-form-question-table>
-                </template>
-
-                <template if:true={crossFieldErrorMessage}>
-                    <div class="slds-form-element__help slds-text-color_error slds-m-top_xx-small" role="alert">{crossFieldErrorMessage}</div>
-                </template>
+      <div class="slds-form-element__control">
+        <!-- Short Text: input vs lightning-input, character row is optional -->
+        <template lwc:if={isShortText}>
+          <template lwc:if={showCharCountdownShortText}>
+            <input
+              type="text"
+              class="slds-input char-countdown-short-native"
+              value={charCountdownShortDisplayValue}
+              placeholder={placeholder}
+              maxlength={charCountdownTextareaMaxlength}
+              required={isRequired}
+              disabled={isDisabled}
+              aria-label={questionLabel}
+              oninput={handleCharCountdownShortInput}
+              onblur={handleCharCountdownShortBlur}
+            />
+          </template>
+          <template lwc:else>
+            <lightning-input
+              type="text"
+              value={question.textValue}
+              placeholder={placeholder}
+              max-length={maxLength}
+              pattern={validationPattern}
+              message-when-pattern-mismatch={validationMessage}
+              message-when-value-missing={requiredValueMissingMessage}
+              onchange={handleTextChange}
+              required={isRequired}
+              disabled={isDisabled}
+            >
+            </lightning-input>
+          </template>
+          <template lwc:if={showCharCountdownShortText}>
+            <div
+              class="char-countdown-row char-countdown-row--muted slds-text-body_small"
+            >
+              <span class="char-countdown-num"
+                >{charCountdownShortCurrentLength}</span
+              ><span class="char-countdown-static">
+                / {charCountdownMaxDisplay} characters</span
+              >
             </div>
-        </div>
+          </template>
+        </template>
+
+        <!-- Long Text: native editor when counters need live updates; footers gated separately -->
+        <template lwc:if={isLongText}>
+          <template lwc:if={useNativeLongTextEditor}>
+            <div class="long-text-native-shell">
+              <textarea
+                class="slds-textarea long-text-native"
+                value={longTextDisplayValue}
+                placeholder={placeholder}
+                maxlength={nativeTextareaMaxlength}
+                disabled={isDisabled}
+                oninput={handleLongTextNativeInput}
+                onblur={handleLongTextNativeBlur}
+              ></textarea>
+              <div class="long-text-native-footers">
+                <template lwc:if={showWordCounter}>
+                  <div class={wordCounterRowClass}>
+                    <span class={wordCounterNumClass}>{currentWordCount}</span
+                    ><span class="word-counter-static">
+                      / {maxWordCountDisplay} words</span
+                    >
+                  </div>
+                </template>
+                <template lwc:if={showLongTextCharCountdownFooter}>
+                  <div
+                    class="char-countdown-row char-countdown-row--muted slds-text-body_small"
+                  >
+                    <span class="char-countdown-num"
+                      >{charCountdownLongCurrentLength}</span
+                    ><span class="char-countdown-static">
+                      / {charCountdownMaxDisplay} characters</span
+                    >
+                  </div>
+                </template>
+              </div>
+            </div>
+          </template>
+          <template lwc:else>
+            <lightning-textarea
+              value={question.textValue}
+              placeholder={placeholder}
+              max-length={maxLength}
+              onchange={handleLongTextChange}
+              onblur={handleLongTextBlur}
+              disabled={isDisabled}
+            ></lightning-textarea>
+          </template>
+        </template>
+
+        <template lwc:if={wordLimitErrorMessage}>
+          <div
+            class="slds-form-element__help slds-text-color_error slds-m-top_xx-small"
+            role="alert"
+          >
+            {wordLimitErrorMessage}
+          </div>
+        </template>
+
+        <template lwc:if={longTextRequiredInlineMessage}>
+          <div
+            class="slds-form-element__help slds-text-color_error slds-m-top_xx-small"
+            role="alert"
+          >
+            {longTextRequiredInlineMessage}
+          </div>
+        </template>
+
+        <!-- Number -->
+        <template lwc:if={isNumberQuestion}>
+          <lightning-input
+            type="number"
+            value={question.textValue}
+            placeholder={placeholder}
+            min={minValue}
+            max={maxValue}
+            step={numberStep}
+            onchange={handleNumberChange}
+            required={isRequired}
+            disabled={isDisabled}
+          >
+          </lightning-input>
+        </template>
+
+        <!-- Date -->
+        <template lwc:if={isDateQuestion}>
+          <lightning-input
+            type="date"
+            value={question.textValue}
+            onchange={handleDateChange}
+            required={isRequired}
+            disabled={isDisabled}
+          >
+          </lightning-input>
+        </template>
+
+        <!-- Picklist (Single Select) -->
+        <template lwc:if={isPicklist}>
+          <lightning-radio-group
+            name={question.questionId}
+            value={question.value}
+            options={responseOptions}
+            onchange={handlePicklistChange}
+            required={isRequired}
+            disabled={isDisabled}
+          >
+          </lightning-radio-group>
+        </template>
+
+        <!-- Multi-Select -->
+        <template lwc:if={isMultiSelect}>
+          <lightning-checkbox-group
+            name={question.questionId}
+            value={multiSelectValue}
+            options={responseOptions}
+            onchange={handleMultiSelectChange}
+            required={isRequired}
+            disabled={isDisabled}
+          >
+          </lightning-checkbox-group>
+        </template>
+
+        <!-- Checkbox -->
+        <template lwc:if={isCheckboxQuestion}>
+          <lightning-checkbox-group
+            name={question.questionId}
+            value={checkboxValue}
+            options={checkboxOptions}
+            onchange={handleCheckboxChange}
+            required={isRequired}
+            disabled={isDisabled}
+          >
+          </lightning-checkbox-group>
+        </template>
+
+        <!-- File Upload -->
+        <template lwc:if={isFileQuestion}>
+          <lightning-input
+            type="file"
+            label="Upload File"
+            accept={question.acceptedFileTypes}
+            disabled={isDisabled}
+            onchange={handleFileChange}
+          >
+          </lightning-input>
+        </template>
+
+        <!-- Table Input -->
+        <template lwc:if={isTableQuestion}>
+          <c-form-question-table
+            label=""
+            column-config={question.tableColumns}
+            initial-data={question.textValue}
+            disabled={isDisabled}
+            ontablechange={handleTableChange}
+          >
+          </c-form-question-table>
+        </template>
+
+        <template lwc:if={crossFieldErrorMessage}>
+          <div
+            class="slds-form-element__help slds-text-color_error slds-m-top_xx-small"
+            role="alert"
+          >
+            {crossFieldErrorMessage}
+          </div>
+        </template>
+      </div>
     </div>
+  </div>
 </template>

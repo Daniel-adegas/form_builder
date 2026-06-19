@@ -1,0 +1,16 @@
+---
+description: Custom field and object metadata hygiene
+globs: "**/objects/**/*.field-meta.xml"
+alwaysApply: false
+---
+
+# Field metadata
+
+- Every new or touched custom field should include a substantive `<description>` inside `<CustomField>` explaining purpose and what UI or behavior it gates.
+- Mirror the description style of sibling fields on the same object (especially toggles on `Form_Builder_Settings__c`).
+- Restricted picklist `<fullName>` values are API values — use exact casing in Apex, LWC, and tests.
+
+## Form Builder feature toggles
+
+- Optional builder capabilities (scoring, translations, field mapping, cross-field validation, styling) are gated via `Form_Builder_Settings__c` toggles and should hide related UI when off.
+- **Layout Mode** (`C_Layout_Mode__c` on `C_Form__c`) is form-level rendering configuration, not a `Form_Builder_Settings__c` feature toggle — do not require a separate enable flag for it.

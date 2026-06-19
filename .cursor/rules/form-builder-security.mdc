@@ -1,0 +1,16 @@
+---
+description: Form Builder security model — permission sets and sanctioned readers
+globs: "**/*.{cls,xml}"
+alwaysApply: false
+---
+
+# Form Builder security (by design)
+
+- End-user CRUD/FLS for Form Builder is enforced through **Permission Sets** (`Forms_Admin` / `Forms_User`) and guards such as `FeatureUtil.isFormBuilderAdmin()`, not necessarily `WITH USER_MODE` / `Security.stripInaccessible` on every metadata read SOQL.
+- A small set of **sanctioned `private without sharing` readers** (e.g. `FormMetadataReader` inside `FormService`) is intentional controlled elevation for published-form structure — do not flag as blocking without an architecture change request.
+- Still flag **new** `without sharing` classes, missing CRUD/FLS on user-submitted data paths (e.g. `saveFormSubmission`), and dynamic SOQL without binding.
+
+## Apex tests for sharing
+
+- Add negative tests for rejected non-owner / non-admin submission paths.
+- Use `System.runAs()` with a restricted user to validate `with sharing` behavior on user-data operations.

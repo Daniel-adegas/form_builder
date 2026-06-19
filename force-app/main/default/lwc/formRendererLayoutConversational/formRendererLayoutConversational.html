@@ -1,57 +1,81 @@
 <template>
-    <section class="conversation-shell">
-        <div class="conversation-progress-row">
-            <div class="conversation-progress">
-                <div class="conversation-progress-fill" style={progressWidth}></div>
-            </div>
-        
-            <span class="counter">{questionCounter}</span>
+  <section class="conversation-shell">
+    <template lwc:if={hasConversationHeader}>
+      <div class="conversation-header">
+        <div>
+          <template lwc:if={currentPageName}>
+            <p class="eyebrow">Page</p>
+            <h2>{currentPageName}</h2>
+          </template>
+          <template lwc:if={currentPageDescription}>
+            <p class="description">{currentPageDescription}</p>
+          </template>
+        </div>
+      </div>
+    </template>
+
+    <div class="conversation-progress-row">
+      <div
+        class="conversation-progress"
+        role="progressbar"
+        aria-valuenow={activeNumber}
+        aria-valuemin="0"
+        aria-valuemax={totalQuestions}
+        aria-label="Progress through questions"
+      >
+        <div class="conversation-progress-fill" style={progressWidth}></div>
+      </div>
+
+      <span class="counter" aria-live="polite" aria-atomic="true"
+        >{questionCounter}</span
+      >
+    </div>
+
+    <template lwc:if={hasQuestions}>
+      <article class="question-stage">
+        <div class="question-meta">
+          <span class="question-number">{activeNumber}</span>
+          <span>{activeSectionName}</span>
         </div>
 
-        <div class="conversation-header">
-            <div>
-                <template if:true={currentPageDescription}>
-                    <p class="description">{currentPageDescription}</p>
-                </template>
-            </div>
+        <c-form-question
+          question={activeQuestion}
+          section-id={activeQuestion.sectionId}
+          read-only={readOnly}
+          feature-settings={featureSettings}
+          onvaluechange={handleValueChange}
+        ></c-form-question>
+
+        <template lwc:if={hasInlineValidationError}>
+          <div
+            class="inline-validation-error"
+            role="alert"
+            aria-live="assertive"
+          >
+            {inlineValidationMessage}
+          </div>
+        </template>
+
+        <div class="conversation-actions">
+          <lightning-button
+            label="Previous"
+            variant="neutral"
+            onclick={handlePrevious}
+            disabled={isPreviousDisabled}
+          ></lightning-button>
+
+          <lightning-button
+            label={nextLabel}
+            variant="brand"
+            onclick={handleNext}
+            disabled={isLastStepSubmitDisabled}
+          ></lightning-button>
         </div>
+      </article>
+    </template>
 
-        <template if:true={hasQuestions}>
-            <article class="question-stage">
-                <div class="question-meta">
-                    <span class="question-number">{activeNumber}</span>
-                    <span>{activeSectionName}</span>
-                </div>
-
-                <c-form-question
-                    question={activeQuestion}
-                    section-id={activeQuestion.sectionId}
-                    read-only={readOnly}
-                    feature-settings={featureSettings}
-                    onvaluechange={handleValueChange}
-                ></c-form-question>
-
-                <div class="conversation-actions">
-                    <lightning-button
-                        label="Previous"
-                        variant="neutral"
-                        onclick={handlePrevious}
-                        disabled={isFirstQuestion}
-                    ></lightning-button>
-
-                    <lightning-button
-                        label={nextLabel}
-                        variant="brand"
-                        onclick={handleNext}
-                    ></lightning-button>
-                </div>
-            </article>
-        </template>
-
-        <template if:false={hasQuestions}>
-            <div class="empty-state">
-                No questions available on this page.
-            </div>
-        </template>
-    </section>
+    <template lwc:else>
+      <div class="empty-state">No questions available on this page.</div>
+    </template>
+  </section>
 </template>

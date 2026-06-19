@@ -1,6 +1,8 @@
-<?xml version="1.0" encoding="UTF-8"?>
+<?xml version="1.0" encoding="UTF-8" ?>
 <CustomField xmlns="http://soap.sforce.com/2006/04/metadata">
     <fullName>C_Enable_Field_Mapping__c</fullName>
+    <description
+  >Enables Field Mapping authoring in Form Builder (Form Targets and per-question mappings). When unchecked, mapping UI is hidden; FieldMappingService still runs on submit only when response records are enabled. Defaults to true.</description>
     <defaultValue>true</defaultValue>
     <externalId>false</externalId>
     <label>Enable Field Mapping</label>
